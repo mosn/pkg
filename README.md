@@ -1,2 +1,3 @@
-# pkg
-Common packages used by other repos.
+# Common MOSN Packages
+
+Common utility packages leveraged by other repos.

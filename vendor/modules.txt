@@ -1,0 +1,4 @@
+# github.com/hashicorp/go-syslog v1.0.0
+github.com/hashicorp/go-syslog
+# gopkg.in/natefinch/lumberjack.v2 v2.0.0
+gopkg.in/natefinch/lumberjack.v2
