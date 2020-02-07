@@ -19,7 +19,9 @@ package log
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 	"testing"
@@ -116,6 +118,48 @@ func TestErrorLog(t *testing.T) {
 		if !(len(qs) >= 4 && qs[2] == preMapping[c.level]) {
 			t.Errorf("level: %v write format is not expected", c)
 		}
+	}
+}
+
+func testLogFatal(logName string) {
+	os.Remove(logName)
+	rlg, err := GetOrCreateLogger(logName, nil)
+	if err != nil {
+		fmt.Println("create logger failed: ", err)
+		return
+	}
+	lg := &SimpleErrorLog{
+		Level:  ERROR,
+		Logger: rlg,
+	}
+	lg.Fatalf("test_fatal")
+}
+
+func TestLogFatal(t *testing.T) {
+	logName := "/tmp/mosn/fatal_log.log"
+	if os.Getenv("FATAL_TEST") == "true" {
+		testLogFatal(logName)
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestLogFatal")
+	cmd.Env = append(os.Environ(), "FATAL_TEST=true")
+	o, err := cmd.Output()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		lines, err := readLines(logName)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(lines) != 1 {
+			t.Fatalf("logger write lines not expected, writes: %d", len(lines))
+		}
+		qs := strings.SplitN(lines[0], " ", 4)
+		if !(len(qs) == 4 &&
+			qs[2] == "[FATAL]" &&
+			qs[3] == "test_fatal") {
+			t.Fatalf("output data is unexpected: %s", lines[0])
+		}
+	} else {
+		t.Fatalf("want a fatal exit, output: %s", string(o))
 	}
 }
 
