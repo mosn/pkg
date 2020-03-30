@@ -202,7 +202,7 @@ func TestIoBufferWriteUin16(t *testing.T) {
 	bi := NewIoBuffer(1)
 	b := bi.(*ioBuffer)
 	input := make([]byte, 0, 1024)
-	n := randN(1024)
+	n := randN(512)
 	var temp [2]byte
 
 	for i := 0; i < n; i++ {
@@ -228,7 +228,7 @@ func TestIoBufferWriteUint32(t *testing.T) {
 	bi := NewIoBuffer(1)
 	b := bi.(*ioBuffer)
 	input := make([]byte, 0, 1024)
-	n := randN(1024)
+	n := randN(256)
 	var temp [4]byte
 
 	for i := 0; i < n; i++ {
