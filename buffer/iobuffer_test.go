@@ -19,6 +19,7 @@ package buffer
 
 import (
 	"bytes"
+	"encoding/binary"
 	"io"
 	"math/rand"
 	"testing"
@@ -170,6 +171,83 @@ func TestIoBufferAppendByte(t *testing.T) {
 	}
 
 	if !bytes.Equal(b.Peek(n), input) {
+		t.Errorf("Expect %x, but got %x", input, b.Peek(n))
+	}
+}
+
+func TestIoBufferWriteByte(t *testing.T) {
+	bi := NewIoBuffer(1)
+	b := bi.(*ioBuffer)
+	input := make([]byte, 0, 1024)
+	n := randN(1024)
+
+	for i := 0; i < n; i++ {
+		err := b.WriteByte(byte(i))
+		if err != nil {
+			t.Fatal(err)
+		}
+		input = append(input, byte(i))
+	}
+
+	if b.Len() != n {
+		t.Errorf("Expect %d bytes, but got %d", n, b.Len())
+	}
+
+	if !bytes.Equal(b.Peek(n), input) {
+		t.Errorf("Expect %x, but got %x", input, b.Peek(n))
+	}
+}
+
+func TestIoBufferWriteUin16(t *testing.T) {
+	bi := NewIoBuffer(1)
+	b := bi.(*ioBuffer)
+	input := make([]byte, 0, 1024)
+	n := randN(1024)
+	var temp [2]byte
+
+	for i := 0; i < n; i++ {
+		err := b.WriteUint16(uint16(i))
+		if err != nil {
+			t.Fatal(err)
+		}
+		binary.BigEndian.PutUint16(temp[0:], uint16(i))
+		input = append(input, temp[0])
+		input = append(input, temp[1])
+	}
+
+	if b.Len() != n*2 {
+		t.Errorf("Expect %d bytes, but got %d", n, b.Len())
+	}
+
+	if !bytes.Equal(b.Peek(n*2), input) {
+		t.Errorf("Expect %x, but got %x", input, b.Peek(n))
+	}
+}
+
+func TestIoBufferWriteUint32(t *testing.T) {
+	bi := NewIoBuffer(1)
+	b := bi.(*ioBuffer)
+	input := make([]byte, 0, 1024)
+	n := randN(1024)
+	var temp [4]byte
+
+	for i := 0; i < n; i++ {
+		err := b.WriteUint32(uint32(i))
+		if err != nil {
+			t.Fatal(err)
+		}
+		binary.BigEndian.PutUint32(temp[0:], uint32(i))
+		input = append(input, temp[0])
+		input = append(input, temp[1])
+		input = append(input, temp[2])
+		input = append(input, temp[3])
+	}
+
+	if b.Len() != n*4 {
+		t.Errorf("Expect %d bytes, but got %d", n, b.Len())
+	}
+
+	if !bytes.Equal(b.Peek(n*4), input) {
 		t.Errorf("Expect %x, but got %x", input, b.Peek(n))
 	}
 }
