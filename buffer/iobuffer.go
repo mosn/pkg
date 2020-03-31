@@ -18,6 +18,7 @@
 package buffer
 
 import (
+	"encoding/binary"
 	"errors"
 	"io"
 	"net"
@@ -276,6 +277,39 @@ func (b *ioBuffer) WriteTo(w io.Writer) (n int64, err error) {
 	}
 
 	return
+}
+
+func (b *ioBuffer) WriteByte(p byte) error {
+	m, ok := b.tryGrowByReslice(1)
+
+	if !ok {
+		m = b.grow(1)
+	}
+
+	b.buf[m] = p
+	return nil
+}
+
+func (b *ioBuffer) WriteUint16(p uint16) error {
+	m, ok := b.tryGrowByReslice(2)
+
+	if !ok {
+		m = b.grow(2)
+	}
+
+	binary.BigEndian.PutUint16(b.buf[m:], p)
+	return nil
+}
+
+func (b *ioBuffer) WriteUint32(p uint32) error {
+	m, ok := b.tryGrowByReslice(4)
+
+	if !ok {
+		m = b.grow(4)
+	}
+
+	binary.BigEndian.PutUint32(b.buf[m:], p)
+	return nil
 }
 
 func (b *ioBuffer) Append(data []byte) error {
