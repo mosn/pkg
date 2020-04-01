@@ -22,6 +22,7 @@ import (
 	"encoding/binary"
 	"io"
 	"math/rand"
+	"sync"
 	"testing"
 	"time"
 )
@@ -494,4 +495,39 @@ func TestIoBufferMaxBufferReadOnce(t *testing.T) {
 	if b.Cap() > MaxBufferLength {
 		t.Errorf("Expect got length %d", b.Cap())
 	}
+}
+
+func TestPipe_CloseWithError(t *testing.T) {
+	pipe := NewPipeBuffer(0)
+	var w sync.WaitGroup
+	w.Add(1)
+	go func() {
+		defer w.Done()
+		bs := make([]byte, 100)
+		_, err := pipe.Read(bs)
+		if err != io.EOF {
+			t.Fatal(err)
+		}
+
+	}()
+	time.Sleep(1000)
+	pipe.CloseWithError(io.EOF)
+	w.Wait()
+}
+
+func TestPipe_ReadAndWrite(t *testing.T) {
+	pipe := NewPipeBuffer(0)
+	var w sync.WaitGroup
+	bbs := []byte("aaabbbbvvvbbbbvvv")
+	w.Add(1)
+	go func() {
+		defer w.Done()
+		bs := make([]byte, len(bbs))
+		_, _ = pipe.Read(bs)
+		if !bytes.Equal(bs, bbs) {
+			t.Fatalf("test failed")
+		}
+	}()
+	_, _ = pipe.Write(bbs)
+	w.Wait()
 }
