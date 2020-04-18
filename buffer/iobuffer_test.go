@@ -66,7 +66,7 @@ func TestNewIoBufferBytes(t *testing.T) {
 }
 
 func TestIoBufferCopy(t *testing.T) {
-	bi := NewIoBuffer(1)
+	bi := newIoBuffer(1)
 	b := bi.(*ioBuffer)
 	n := randN(1024) + 1
 	b.copy(n)
@@ -76,7 +76,7 @@ func TestIoBufferCopy(t *testing.T) {
 }
 
 func TestIoBufferGrowCopy(t *testing.T) {
-	bi := NewIoBuffer(MaxThreshold + 1)
+	bi := newIoBuffer(MaxThreshold + 1)
 	b := bi.(*ioBuffer)
 	n := randN(1024) + 1
 	b.copy(n)
@@ -86,7 +86,7 @@ func TestIoBufferGrowCopy(t *testing.T) {
 }
 
 func TestIoBufferWrite(t *testing.T) {
-	b := NewIoBuffer(1)
+	b := newIoBuffer(1)
 	n := randN(64)
 
 	for i := 0; i < n; i++ {
@@ -135,7 +135,7 @@ func TestIoBufferWrite(t *testing.T) {
 }
 
 func TestIoBufferAppend(t *testing.T) {
-	bi := NewIoBuffer(1)
+	bi := newIoBuffer(1)
 	b := bi.(*ioBuffer)
 	n := randN(64)
 	for i := 0; i < n; i++ {
@@ -154,7 +154,7 @@ func TestIoBufferAppend(t *testing.T) {
 }
 
 func TestIoBufferAppendByte(t *testing.T) {
-	bi := NewIoBuffer(1)
+	bi := newIoBuffer(1)
 	b := bi.(*ioBuffer)
 	input := make([]byte, 0, 1024)
 	n := randN(1024)
@@ -177,7 +177,7 @@ func TestIoBufferAppendByte(t *testing.T) {
 }
 
 func TestIoBufferWriteByte(t *testing.T) {
-	bi := NewIoBuffer(1)
+	bi := newIoBuffer(1)
 	b := bi.(*ioBuffer)
 	input := make([]byte, 0, 1024)
 	n := randN(1024)
@@ -200,7 +200,7 @@ func TestIoBufferWriteByte(t *testing.T) {
 }
 
 func TestIoBufferWriteUin16(t *testing.T) {
-	bi := NewIoBuffer(1)
+	bi := newIoBuffer(1)
 	b := bi.(*ioBuffer)
 	input := make([]byte, 0, 1024)
 	n := randN(512)
@@ -226,7 +226,7 @@ func TestIoBufferWriteUin16(t *testing.T) {
 }
 
 func TestIoBufferWriteUint32(t *testing.T) {
-	bi := NewIoBuffer(1)
+	bi := newIoBuffer(1)
 	b := bi.(*ioBuffer)
 	input := make([]byte, 0, 1024)
 	n := randN(256)
@@ -254,7 +254,7 @@ func TestIoBufferWriteUint32(t *testing.T) {
 }
 
 func TestIoBufferRead(t *testing.T) {
-	b := NewIoBuffer(0)
+	b := newIoBuffer(0)
 	data := make([]byte, 1)
 
 	n, err := b.Read(data)
@@ -271,7 +271,7 @@ func TestIoBufferRead(t *testing.T) {
 		t.Errorf("Expect (0, nil) but got (%d, %s)", n, err)
 	}
 
-	b = NewIoBuffer(1)
+	b = newIoBuffer(1)
 	s := randString(1024)
 	reader := bytes.NewReader([]byte(s))
 
@@ -291,7 +291,7 @@ func TestIoBufferRead(t *testing.T) {
 
 func TestIoBufferReadOnce(t *testing.T) {
 	// test small data
-	b := NewIoBuffer(1)
+	b := newIoBuffer(1)
 	s := randString(25)
 	reader := bytes.NewReader([]byte(s))
 
@@ -311,7 +311,7 @@ func TestIoBufferReadOnce(t *testing.T) {
 	}
 
 	// test big data
-	b = NewIoBuffer(1)
+	b = newIoBuffer(1)
 	bsize := 1025
 	s = randString(bsize)
 	reader = bytes.NewReader([]byte(s))
@@ -385,7 +385,7 @@ func TestIoBufferCut(t *testing.T) {
 }
 
 func TestIoBufferAllocAndFree(t *testing.T) {
-	b := NewIoBuffer(0)
+	b := newIoBuffer(0)
 	for i := 0; i < 1024; i++ {
 		b.Alloc(i)
 		if b.Cap() < i {
@@ -409,7 +409,7 @@ func TestIoBufferAllocAndFree(t *testing.T) {
 
 func TestIoBufferZero(t *testing.T) {
 	writer := bytes.NewBuffer(nil)
-	b := NewIoBuffer(0)
+	b := newIoBuffer(0)
 	_, err := b.WriteTo(writer)
 	if err != nil {
 		t.Fatal(err)
@@ -449,7 +449,7 @@ func TestIoBufferZero(t *testing.T) {
 		t.Errorf("Expect 0, but got %s", string(writer.Bytes()))
 	}
 
-	b = NewIoBuffer(0)
+	b = newIoBuffer(0)
 
 	if b.String() != "" {
 		t.Errorf("Expect \"\", but got %s", string(b.String()))
@@ -465,7 +465,7 @@ func TestIoBufferZero(t *testing.T) {
 }
 
 func TestIoBufferMaxBufferReadOnce(t *testing.T) {
-	b := NewIoBuffer(1)
+	b := newIoBuffer(1)
 	s := randString(MaxBufferLength + 1)
 	input := make([]byte, 0, 1024)
 	reader := bytes.NewReader([]byte(s))

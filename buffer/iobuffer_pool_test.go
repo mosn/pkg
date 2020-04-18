@@ -126,7 +126,7 @@ func testiobufferpool() IoBuffer {
 }
 
 func testiobuffer() IoBuffer {
-	b := NewIoBuffer(Size)
+	b := newIoBuffer(Size)
 	b.Write(Buffer[:])
 	return b
 }
@@ -143,3 +143,11 @@ func BenchmarkIoBuffer(b *testing.B) {
 		testiobuffer()
 	}
 }
+
+func BenchmarkNewIoBuffer(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := testiobuffer()
+		PutIoBuffer(buf)
+	}
+}
+
