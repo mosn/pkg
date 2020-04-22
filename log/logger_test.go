@@ -18,7 +18,6 @@
 package log
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -89,36 +88,33 @@ func TestLogDefaultRollerTime(t *testing.T) {
 	rollerName := logName + "." + time.Now().Format("2006-01-02_15")
 	os.Remove(logName)
 	os.Remove(rollerName)
-	// 2s
-	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 2})
+	// auto rotate each 10 seconds
+	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
+	// 1111 will be rotated to rollerName
 	logger.Print(buffer.NewIoBufferString("1111111"), false)
-	time.Sleep(3 * time.Second)
+	time.Sleep(11 * time.Second)
+	// 2222 will be writed in logName
 	logger.Print(buffer.NewIoBufferString("2222222"), false)
 	time.Sleep(1 * time.Second)
-	logger.Close()
+	logger.Close() // stop the rotate
 
-	b := make([]byte, 100)
-	f, err := os.Open(logName)
+	lines, err := readLines(logName)
 	if err != nil {
-		t.Errorf("TestLogDefaultRoller failed %v", err)
+		t.Fatalf("read %s error: %v", logName, err)
 	}
-	n, err := f.Read(b)
-	f.Close()
-	if err != io.EOF || n != 0 {
-		t.Errorf("TestLogDefaultRoller failed %v", err)
+	if len(lines) != 1 || lines[0] != "2222222" {
+		t.Fatalf("read %s data: %v, not expected", logName, lines)
 	}
 
-	f, err = os.Open(rollerName)
+	lines, err = readLines(rollerName)
 	if err != nil {
-		t.Errorf("TestLogDefaultRoller failed %v", err)
+		t.Fatalf("read %s error: %v", rollerName, err)
 	}
-	n, err = f.Read(b)
-	f.Close()
-	if n == 0 || string(b[0:n]) != "11111112222222" {
-		t.Errorf("TestLogDefaultRoller failed %v", string(b[0:n]))
+	if len(lines) != 1 || lines[0] != "1111111" {
+		t.Fatalf("read %s data: %v, not expected", rollerName, lines)
 	}
 }
 
@@ -128,7 +124,7 @@ func TestLogDefaultRollerAfterDelete(t *testing.T) {
 	os.Remove(logName)
 	os.Remove(rollerName)
 
-	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 3})
+	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,9 +132,8 @@ func TestLogDefaultRollerAfterDelete(t *testing.T) {
 	os.Remove(logName)
 	logger.Print(buffer.NewIoBufferString("nowhere"), false)
 	// wait roller
-	time.Sleep(4 * time.Second)
-	// the first log trigger roller will be writed in the old file
-	logger.Print(buffer.NewIoBufferString("ignore"), false)
+	time.Sleep(11 * time.Second)
+	logger.Print(buffer.NewIoBufferString("data"), false)
 	time.Sleep(100 * time.Millisecond) // wait write flush
 	logger.Print(buffer.NewIoBufferString("output"), false)
 	logger.Close() // force flush
@@ -146,7 +141,7 @@ func TestLogDefaultRollerAfterDelete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read log file failed: %v", err)
 	}
-	if string(b) != "output" {
+	if string(b) != "dataoutput" {
 		t.Errorf("read file data: %s", string(b))
 	}
 	// rollerName should not be exists
@@ -183,4 +178,64 @@ func TestLoglocalOffset(t *testing.T) {
 	t.Logf("t1=%d t2=%d offset=%d rollertime=%d\n", t1.Unix(), t2.Unix(), offset, defaultRollerTime)
 	t.Logf("%d %d\n", (t1.Unix())/defaultRollerTime, (t1.Unix() / defaultRollerTime))
 	t.Logf("%d %d\n", (t1.Unix()+int64(offset))/defaultRollerTime, (t2.Unix()+int64(offset))/defaultRollerTime)
+}
+
+type testRecord struct {
+	closed   bool
+	interval time.Duration
+}
+
+func (r *testRecord) overwriteRotateForTest(l *Logger, interval time.Duration) {
+	r.interval = interval
+	<-l.stopRotate
+	r.closed = true
+}
+
+func TestRotateClose(t *testing.T) {
+	r := &testRecord{}
+	doRotate = r.overwriteRotateForTest
+	defer func() {
+		doRotate = doRotateFunc // recover
+	}()
+	logName := "/tmp/test.log"
+	logger, err := GetOrCreateLogger(logName, nil) // create default roller
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(10 * time.Millisecond) // wait logger start
+	logger.Close()
+	time.Sleep(10 * time.Millisecond) // wait logger closed
+	if !r.closed {
+		t.Fatalf("want to close rotate func, but not")
+	}
+}
+
+func TestRotateInteval(t *testing.T) {
+	r := &testRecord{}
+	doRotate = r.overwriteRotateForTest
+	defer func() {
+		doRotate = doRotateFunc // recover
+	}()
+	// 2020-04-22 17:00:00
+	t1 := time.Date(2020, time.April, 22, 17, 00, 0, 0, time.Local)
+	lg := &Logger{
+		create: t1,
+		roller: &defaultRoller,
+	}
+	lg.startRotate()
+	time.Sleep(10 * time.Millisecond)
+	if r.interval != 7*time.Hour {
+		t.Fatalf("rotate interval is not expected, %v", r.interval)
+	}
+	// 2020-04-22 17:05:08
+	t2 := time.Date(2020, time.April, 22, 17, 05, 8, 0, time.Local)
+	lg2 := &Logger{
+		create: t2,
+		roller: &Roller{MaxTime: 3600},
+	}
+	lg2.startRotate()
+	time.Sleep(10 * time.Millisecond)
+	if r.interval != time.Duration(54*60+52)*time.Second {
+		t.Fatalf("rotate interval is not expected, %v", r.interval)
+	}
 }
