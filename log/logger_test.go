@@ -84,12 +84,22 @@ func TestLogPrintnull(t *testing.T) {
 	}
 }
 
+// force set rotate interval for test
+// we use this for test file rotate action, not the rotate interval
+func testRotate(l *Logger, interval time.Duration) {
+	doRotateFunc(l, 10*time.Second)
+}
+
 func TestLogDefaultRollerTime(t *testing.T) {
 	logName := "/tmp/mosn_bench/printdefaultroller.log"
 	rollerName := logName + "." + time.Now().Format("2006-01-02_15")
 	os.Remove(logName)
 	os.Remove(rollerName)
-	// auto rotate each 10 seconds
+	// replace rotate interval for test
+	doRotate = testRotate
+	defer func() {
+		doRotate = doRotateFunc
+	}()
 	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10})
 	if err != nil {
 		t.Fatal(err)
@@ -124,6 +134,11 @@ func TestLogDefaultRollerAfterDelete(t *testing.T) {
 	rollerName := logName + "." + time.Now().Format("2006-01-02")
 	os.Remove(logName)
 	os.Remove(rollerName)
+	// replace rotate interval for test
+	doRotate = testRotate
+	defer func() {
+		doRotate = doRotateFunc
+	}()
 
 	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10})
 	if err != nil {
@@ -211,6 +226,7 @@ func TestRotateClose(t *testing.T) {
 	}
 }
 
+// we use these cases for test rotate interval
 func TestRotateInteval(t *testing.T) {
 	r := &testRecord{}
 	doRotate = r.overwriteRotateForTest
@@ -229,8 +245,7 @@ func TestRotateInteval(t *testing.T) {
 	if r.interval != 7*time.Hour {
 		t.Fatalf("rotate interval is not expected, %v", r.interval)
 	}
-	// 17:05:08
-	t2 := time.Date(year, month, day, 17, 05, 8, 0, time.Local)
+	t2 := time.Date(year, month, day, time.Now().Hour(), 05, 8, 0, time.Local)
 	lg2 := &Logger{
 		create: t2,
 		roller: &Roller{MaxTime: 3600},
@@ -277,29 +292,28 @@ func TestRotateRightNow(t *testing.T) {
 	logfile := path.Join(logpath, "test_rotate_rightnow.log")
 	os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	// make a logger, hack the create time
+	ct := time.Now().Add(-24 * time.Hour) // file created at last day
 	lg := &Logger{
 		output: logfile,
-		create: time.Unix(1, 0), // not zero
+		create: ct,
 		roller: &defaultRoller,
 	}
 	lg.startRotate()
 	time.Sleep(10 * time.Millisecond)
-	// expected log.1970-01-01
-	rotated := path.Join(logpath, "test_rotate_rightnow.log.1970-01-01")
+	rotated := path.Join(logpath, "test_rotate_rightnow.log."+ct.Format("2006-01-02"))
 	if !(exists(rotated) && exists(logfile)) {
 		t.Fatalf("log rotate is not expected")
 	}
 	// rotate by hour
-	loc, _ := time.LoadLocation("UTC")
+	ct2 := time.Now().Add(-1 * time.Hour) // file created at last hour
 	lg2 := &Logger{
 		output: logfile,
-		create: time.Unix(1, 0).In(loc), // not zero
+		create: ct2,
 		roller: &Roller{MaxTime: 3600},
 	}
 	lg2.startRotate()
 	time.Sleep(10 * time.Millisecond)
-	// xpected log.1970-01-01_00
-	rotatedHour := path.Join(logpath, "test_rotate_rightnow.log.1970-01-01_00")
+	rotatedHour := path.Join(logpath, "test_rotate_rightnow.log."+ct2.Format("2006-01-02_15"))
 	if !(exists(rotatedHour) && exists(logfile)) {
 		t.Fatalf("log rotate is not expected")
 	}
