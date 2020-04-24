@@ -80,11 +80,20 @@ func TestParseRoller(t *testing.T) {
 	errorPraseArgs = "time=12"
 	err = InitGlobalRoller(errorPraseArgs)
 	if err != nil {
-		t.Errorf("ParseRoller should be failed")
+		t.Errorf("ParseRoller failed")
 	}
 
 	if defaultRoller.MaxTime != 12*60*60 {
 		t.Errorf("ParseRoller failed")
+	}
+
+	errorPraseArgs = "time=36" // out of max
+	err = InitGlobalRoller(errorPraseArgs)
+	if err != nil {
+		t.Errorf("ParseRoller failed")
+	}
+	if defaultRoller.MaxTime != 24*60*60 {
+		t.Errorf("ParseRoller out of max time")
 	}
 }
 
