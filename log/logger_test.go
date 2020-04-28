@@ -19,6 +19,7 @@ package log
 
 import (
 	"io/ioutil"
+	"math"
 	"os"
 	"path"
 	"runtime"
@@ -233,7 +234,8 @@ func TestRotateInteval(t *testing.T) {
 	defer func() {
 		doRotate = doRotateFunc // recover
 	}()
-	year, month, day := time.Now().Date()
+	now := time.Now()
+	year, month, day := now.Date()
 	// 17:00:00
 	t1 := time.Date(year, month, day, 17, 00, 0, 0, time.Local)
 	lg := &Logger{
@@ -242,17 +244,27 @@ func TestRotateInteval(t *testing.T) {
 	}
 	lg.startRotate()
 	time.Sleep(10 * time.Millisecond)
-	if r.interval != 7*time.Hour {
-		t.Fatalf("rotate interval is not expected, %v", r.interval)
+	// expected interval is not determined by create file, but current time
+	// allow some deviation
+	tomorrow := time.Date(year, month, day+1, 00, 00, 0, 0, time.Local)
+	expected := tomorrow.Sub(now)
+	diff := time.Duration(math.Abs(float64(r.interval - expected)))
+	if diff > 3*time.Second { // out of deviation
+		t.Fatalf("rotate interval is not expected, interval:%v, expected: %v", r.interval, expected)
 	}
-	t2 := time.Date(year, month, day, time.Now().Hour(), 05, 8, 0, time.Local)
+	t2 := time.Date(year, month, day, now.Hour(), 05, 8, 0, time.Local)
 	lg2 := &Logger{
 		create: t2,
 		roller: &Roller{MaxTime: 3600},
 	}
 	lg2.startRotate()
 	time.Sleep(10 * time.Millisecond)
-	if r.interval != time.Duration(54*60+52)*time.Second {
+	// expected interval is not determined by create file, but current time
+	// allow some deviation
+	nextHour := time.Date(year, month, day, now.Hour()+1, 00, 0, 0, time.Local)
+	expectedHour := nextHour.Sub(now)
+	diffHour := time.Duration(math.Abs(float64(r.interval - expectedHour)))
+	if diffHour > 3*time.Second { // out of deviation
 		t.Fatalf("rotate interval is not expected, %v", r.interval)
 	}
 }
