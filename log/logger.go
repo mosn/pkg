@@ -78,6 +78,14 @@ type Logger struct {
 	writeBufferChan chan buffer.IoBuffer
 }
 
+type LoggerInfo struct {
+	LogRoller  Roller
+	FileName   string
+	CreateTime time.Time
+}
+
+type AfterRotation func(l *LoggerInfo)
+
 // loggers keeps all Logger we created
 // key is output, same output reference the same Logger
 var loggers sync.Map // map[string]*Logger
@@ -129,6 +137,10 @@ func GetOrCreateLogger(output string, roller *Roller) (*Logger, error) {
 
 	if roller == nil {
 		roller = &defaultRoller
+	}
+
+	if roller.Rotation == nil {
+		roller.Rotation = afterRotation
 	}
 
 	lg := &Logger{
@@ -379,6 +391,15 @@ func (l *Logger) startRotate() {
 	})
 }
 
+func afterRotation(l *LoggerInfo) {
+	// ignore the rename error, in case the l.output is deleted
+	if l.LogRoller.MaxTime == defaultRotateTime {
+		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02"))
+	} else {
+		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02_15"))
+	}
+}
+
 var doRotate func(l *Logger, interval time.Duration) = doRotateFunc
 
 func doRotateFunc(l *Logger, interval time.Duration) {
@@ -388,12 +409,9 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 			return
 		case <-time.After(interval):
 			now := time.Now()
-			// ignore the rename error, in case the l.output is deleted
-			if l.roller.MaxTime == defaultRotateTime {
-				os.Rename(l.output, l.output+"."+l.create.Format("2006-01-02"))
-			} else {
-				os.Rename(l.output, l.output+"."+l.create.Format("2006-01-02_15"))
-			}
+			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
+			info.LogRoller = *l.roller
+			l.roller.Rotation(&info)
 			l.create = now
 			go l.Reopen()
 
@@ -412,6 +430,11 @@ func (l *Logger) Write(p []byte) (n int, err error) {
 
 func (l *Logger) Close() error {
 	l.closeChan <- struct{}{}
+	return nil
+}
+
+func (l *Logger) CloseRotate() error {
+	close(l.stopRotate)
 	return nil
 }
 

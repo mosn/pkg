@@ -101,7 +101,7 @@ func TestLogDefaultRollerTime(t *testing.T) {
 	defer func() {
 		doRotate = doRotateFunc
 	}()
-	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10})
+	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10, Rotation: afterRotation})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +141,7 @@ func TestLogDefaultRollerAfterDelete(t *testing.T) {
 		doRotate = doRotateFunc
 	}()
 
-	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10})
+	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 10, Rotation: afterRotation})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,7 +255,7 @@ func TestRotateInteval(t *testing.T) {
 	t2 := time.Date(year, month, day, now.Hour(), 05, 8, 0, time.Local)
 	lg2 := &Logger{
 		create: t2,
-		roller: &Roller{MaxTime: 3600},
+		roller: &Roller{MaxTime: 3600, Rotation: afterRotation},
 	}
 	lg2.startRotate()
 	time.Sleep(10 * time.Millisecond)
@@ -321,7 +321,7 @@ func TestRotateRightNow(t *testing.T) {
 	lg2 := &Logger{
 		output: logfile,
 		create: ct2,
-		roller: &Roller{MaxTime: 3600},
+		roller: &Roller{MaxTime: 3600, Rotation: afterRotation},
 	}
 	lg2.startRotate()
 	time.Sleep(10 * time.Millisecond)

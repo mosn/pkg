@@ -29,7 +29,7 @@ import (
 
 var (
 	// defaultRoller is roller by one day
-	defaultRoller = Roller{MaxTime: defaultRotateTime}
+	defaultRoller = Roller{MaxTime: defaultRotateTime, Rotation: afterRotation}
 
 	// lumberjacks maps log filenames to the logger
 	// that is being used to keep them rolled/maintained.
@@ -66,7 +66,8 @@ type Roller struct {
 	Compress   bool
 	LocalTime  bool
 	// roller rotate time, if the MAxTime is configured, ignore the others config
-	MaxTime int64
+	MaxTime  int64
+	Rotation AfterRotation
 }
 
 // GetLogWriter returns an io.Writer that writes to a rolling logger.
@@ -116,6 +117,7 @@ func DefaultRoller() *Roller {
 		MaxBackups: defaultRotateKeep,
 		Compress:   false,
 		LocalTime:  true,
+		Rotation:   afterRotation,
 	}
 }
 
