@@ -433,11 +433,6 @@ func (l *Logger) Close() error {
 	return nil
 }
 
-func (l *Logger) CloseRotate() error {
-	close(l.stopRotate)
-	return nil
-}
-
 func (l *Logger) Reopen() error {
 	defer func() {
 		if r := recover(); r != nil {
