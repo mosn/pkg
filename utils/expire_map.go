@@ -83,7 +83,7 @@ func (e *ExpiredMap) Get(key interface{}) (interface{}, bool) {
 			// If it is a synchronous update mode, get data again.
 			if e.syncMod {
 				if val, ok := e.syncMap.Load(key); ok {
-					eval := val.(expiredata)
+					eval := val.(*expiredata)
 					if ok := eval.checkValid(); ok {
 						return eval.data, ok
 					}
@@ -106,12 +106,11 @@ func (e *ExpiredMap) updateData(key interface{}, valid time.Duration) {
 			return
 		}
 
-		// Recover 'updated = 0' and set expires time is half of 'valid' when update handler failed
+		// Set expires time is half of 'valid' when update handler failed
 		if val, ok := e.syncMap.Load(key); ok {
 			eval := val.(*expiredata)
-			atomic.StoreUint32(&eval.updated, 0)
 			ct := time.Now()
-			eval.expiredTime = ct.Add(valid / 2.0)
+			e.syncMap.Store(key, &expiredata{data: eval.data, expiredTime: ct.Add(valid / 2), valid: valid})
 		}
 	}
 
