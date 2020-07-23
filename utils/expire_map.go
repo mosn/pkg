@@ -23,6 +23,12 @@ import (
 	"time"
 )
 
+const (
+	updateInit = iota
+	updating
+	updateFailed
+)
+
 const NeverExpire time.Duration = -1
 
 type expiredata struct {
@@ -73,19 +79,31 @@ func (e *ExpiredMap) Get(key interface{}) (interface{}, bool) {
 	if val, ok := e.syncMap.Load(key); ok {
 		eval := val.(*expiredata)
 		if ok := eval.checkValid(); ok {
-			return eval.data, ok
+			// if updated success
+			if atomic.LoadUint32(&eval.updated) == 0 {
+				return eval.data, true
+			} else {
+				return eval.data, false
+			}
+
 		}
 
 		// Cache expires, updated via updateHandler.
 		// Check eval.updated to avoid cache flood.
-		if e.UpdateHandler != nil && atomic.CompareAndSwapUint32(&eval.updated, 0, 1) {
+		if e.UpdateHandler != nil && (atomic.CompareAndSwapUint32(&eval.updated, updateInit, 1) || atomic.CompareAndSwapUint32(&eval.updated, updateFailed, 1)) {
+
 			e.updateData(key, eval.valid)
 			// If it is a synchronous update mode, get data again.
 			if e.syncMod {
 				if val, ok := e.syncMap.Load(key); ok {
 					eval := val.(*expiredata)
 					if ok := eval.checkValid(); ok {
-						return eval.data, ok
+						if atomic.LoadUint32(&eval.updated) == 0 {
+							return eval.data, true
+						} else {
+							return eval.data, false
+						}
+
 					}
 				}
 			}
@@ -110,7 +128,7 @@ func (e *ExpiredMap) updateData(key interface{}, valid time.Duration) {
 		if val, ok := e.syncMap.Load(key); ok {
 			eval := val.(*expiredata)
 			ct := time.Now()
-			e.syncMap.Store(key, &expiredata{data: eval.data, expiredTime: ct.Add(valid / 2), valid: valid})
+			e.syncMap.Store(key, &expiredata{data: eval.data, expiredTime: ct.Add(valid / 2), valid: valid, updated: updateFailed})
 		}
 	}
 
