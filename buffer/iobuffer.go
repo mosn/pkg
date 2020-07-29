@@ -193,6 +193,16 @@ func (b *ioBuffer) Read(p []byte) (n int, err error) {
 	return
 }
 
+func (b *ioBuffer) Grow(n int) error {
+	_, ok := b.tryGrowByReslice(n)
+
+	if !ok {
+		b.grow(n)
+	}
+
+	return nil
+}
+
 func (b *ioBuffer) ReadOnce(r io.Reader) (n int64, err error) {
 	var m int
 
@@ -215,7 +225,7 @@ func (b *ioBuffer) ReadOnce(r io.Reader) (n int64, err error) {
 	conn, _ := r.(net.Conn)
 	if conn != nil {
 		// TODO: support configure
-		conn.SetReadDeadline(time.Now().Add(ConnReadTimeout))
+		// conn.SetReadDeadline(time.Now().Add(ConnReadTimeout))
 
 		m, err = r.Read(b.buf[len(b.buf):cap(b.buf)])
 
