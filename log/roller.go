@@ -20,6 +20,7 @@ package log
 import (
 	"errors"
 	"io"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -29,7 +30,7 @@ import (
 
 var (
 	// defaultRoller is roller by one day
-	defaultRoller = Roller{MaxTime: defaultRotateTime, Rotation: afterRotation}
+	defaultRoller = Roller{MaxTime: defaultRotateTime, Handler: rollerHandler}
 
 	// lumberjacks maps log filenames to the logger
 	// that is being used to keep them rolled/maintained.
@@ -66,9 +67,11 @@ type Roller struct {
 	Compress   bool
 	LocalTime  bool
 	// roller rotate time, if the MAxTime is configured, ignore the others config
-	MaxTime  int64
-	Rotation AfterRotation
+	MaxTime int64
+	Handler RollerHandler
 }
+
+type RollerHandler func(l *LoggerInfo)
 
 // GetLogWriter returns an io.Writer that writes to a rolling logger.
 // This should be called only from the main goroutine (like during
@@ -117,7 +120,16 @@ func DefaultRoller() *Roller {
 		MaxBackups: defaultRotateKeep,
 		Compress:   false,
 		LocalTime:  true,
-		Rotation:   afterRotation,
+		Handler:    rollerHandler,
+	}
+}
+
+func rollerHandler(l *LoggerInfo) {
+	// ignore the rename error, in case the l.output is deleted
+	if l.LogRoller.MaxTime == defaultRotateTime {
+		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02"))
+	} else {
+		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02_15"))
 	}
 }
 

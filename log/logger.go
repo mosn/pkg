@@ -84,8 +84,6 @@ type LoggerInfo struct {
 	CreateTime time.Time
 }
 
-type AfterRotation func(l *LoggerInfo)
-
 // loggers keeps all Logger we created
 // key is output, same output reference the same Logger
 var loggers sync.Map // map[string]*Logger
@@ -139,8 +137,8 @@ func GetOrCreateLogger(output string, roller *Roller) (*Logger, error) {
 		roller = &defaultRoller
 	}
 
-	if roller.Rotation == nil {
-		roller.Rotation = afterRotation
+	if roller.Handler == nil {
+		roller.Handler = rollerHandler
 	}
 
 	lg := &Logger{
@@ -391,15 +389,6 @@ func (l *Logger) startRotate() {
 	})
 }
 
-func afterRotation(l *LoggerInfo) {
-	// ignore the rename error, in case the l.output is deleted
-	if l.LogRoller.MaxTime == defaultRotateTime {
-		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02"))
-	} else {
-		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02_15"))
-	}
-}
-
 var doRotate func(l *Logger, interval time.Duration) = doRotateFunc
 
 func doRotateFunc(l *Logger, interval time.Duration) {
@@ -411,7 +400,7 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 			now := time.Now()
 			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
 			info.LogRoller = *l.roller
-			l.roller.Rotation(&info)
+			l.roller.Handler(&info)
 			l.create = now
 			go l.Reopen()
 
