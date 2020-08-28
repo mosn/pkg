@@ -24,7 +24,7 @@ import (
 func TestParseRoller(t *testing.T) {
 	defer func() {
 		// reset
-		defaultRoller = Roller{MaxTime: defaultRotateTime}
+		defaultRoller = Roller{MaxTime: defaultRotateTime, Handler: rollerHandler}
 	}()
 	errorPraseArgs := "size=100 age=10 keep=10 compress=1"
 	roller, err := ParseRoller(errorPraseArgs)
@@ -109,7 +109,7 @@ func TestInitDefaultRoller(t *testing.T) {
 	InitGlobalRoller("time=1")
 	defer func() {
 		// reset
-		defaultRoller = Roller{MaxTime: defaultRotateTime}
+		defaultRoller = Roller{MaxTime: defaultRotateTime, Handler: rollerHandler}
 	}()
 	if lg.roller.MaxTime != 60*60 {
 		t.Errorf("expected roller reset, but not, got: %d", lg.roller.MaxTime)
