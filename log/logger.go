@@ -59,9 +59,11 @@ var (
 // Reopen() error
 // Toggle(disable bool)
 type Logger struct {
-	// output is the log's output path
+	// output is the log's output file
 	// if output is empty(""), it is equals to stderr
 	output string
+	// output is the log's output path
+	outputPath string
 	// writer writes the log, created by output
 	writer io.Writer
 	// roller rotates the log, if the output is a file path
@@ -81,6 +83,7 @@ type Logger struct {
 type LoggerInfo struct {
 	LogRoller  Roller
 	FileName   string
+	FilePath   string
 	CreateTime time.Time
 }
 
@@ -140,9 +143,10 @@ func GetOrCreateLogger(output string, roller *Roller) (*Logger, error) {
 	if roller.Handler == nil {
 		roller.Handler = rollerHandler
 	}
-
+	outputPath := output[0 : strings.LastIndex(output, "/")+1]
 	lg := &Logger{
 		output:          output,
+		outputPath:      outputPath,
 		roller:          roller,
 		writeBufferChan: make(chan buffer.IoBuffer, 500),
 		reopenChan:      make(chan struct{}),
@@ -398,7 +402,7 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 			return
 		case <-time.After(interval):
 			now := time.Now()
-			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
+			info := LoggerInfo{FileName: l.output, FilePath: l.outputPath, CreateTime: l.create}
 			info.LogRoller = *l.roller
 			l.roller.Handler(&info)
 			l.create = now

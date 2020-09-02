@@ -51,21 +51,23 @@ const (
 	// defaultRotateKeep is 10 files.
 	defaultRotateKeep = 10
 
-	directiveRotateTime     = "time"
-	directiveRotateSize     = "size"
-	directiveRotateAge      = "age"
-	directiveRotateKeep     = "keep"
-	directiveRotateCompress = "compress"
+	directiveRotateTime        = "time"
+	directiveRotateSize        = "size"
+	directiveRotateAge         = "age"
+	directiveRotateKeep        = "keep"
+	directiveRotateCompress    = "compress"
+	directiveLogFileNameFormat = "format"
 )
 
 // roller implements a type that provides a rolling logger.
 type Roller struct {
-	Filename   string
-	MaxSize    int
-	MaxAge     int
-	MaxBackups int
-	Compress   bool
-	LocalTime  bool
+	Filename       string
+	FileNameFormat string
+	MaxSize        int
+	MaxAge         int
+	MaxBackups     int
+	Compress       bool
+	LocalTime      bool
 	// roller rotate time, if the MAxTime is configured, ignore the others config
 	MaxTime int64
 	Handler RollerHandler
@@ -124,13 +126,21 @@ func DefaultRoller() *Roller {
 	}
 }
 
-func rollerHandler(l *LoggerInfo) {
-	// ignore the rename error, in case the l.output is deleted
-	if l.LogRoller.MaxTime == defaultRotateTime {
-		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02"))
-	} else {
-		os.Rename(l.FileName, l.FileName+"."+l.CreateTime.Format("2006-01-02_15"))
+func setLogFileFormat(l *LoggerInfo) {
+	if len(l.LogRoller.FileNameFormat) != 0 {
+		l.LogRoller.FileNameFormat = l.FilePath + l.LogRoller.FileNameFormat
+		return
 	}
+	if l.LogRoller.MaxTime == defaultRotateTime {
+		l.LogRoller.FileNameFormat = l.FileName + "." + "2006-01-02"
+	} else {
+		l.LogRoller.FileNameFormat = l.FileName + "." + "2006-01-02_15"
+	}
+}
+func rollerHandler(l *LoggerInfo) {
+	setLogFileFormat(l)
+	// ignore the rename error, in case the l.output is deleted
+	os.Rename(l.FileName, l.CreateTime.Format(l.LogRoller.FileNameFormat))
 }
 
 // ParseRoller parses roller contents out of c.
@@ -180,6 +190,8 @@ func ParseRoller(what string) (*Roller, error) {
 			} else {
 				err = errInvalidRollerParameter
 			}
+		case directiveLogFileNameFormat:
+			roller.FileNameFormat = v[1]
 		default:
 			err = errInvalidRollerParameter
 		}
@@ -196,5 +208,6 @@ func IsLogRollerSubdirective(subdir string) bool {
 	return subdir == directiveRotateSize ||
 		subdir == directiveRotateAge ||
 		subdir == directiveRotateKeep ||
-		subdir == directiveRotateCompress
+		subdir == directiveRotateCompress ||
+		subdir == directiveLogFileNameFormat
 }
