@@ -375,3 +375,49 @@ func TestRotateWithFormat(t *testing.T) {
 	}
 
 }
+
+func TestRotateWithFormatLocalFile(t *testing.T) {
+	err := InitGlobalRoller("format=2006-01-02_15-mosn.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	logName := "TestRotateWithFormat.log"
+	rollerName := time.Now().Format("2006-01-02_15") + "-mosn" + ".log"
+	os.Remove(logName)
+	os.Remove(rollerName)
+	// replace rotate interval for test
+	doRotate = testRotate
+	defer func() {
+		doRotate = doRotateFunc
+	}()
+	defaultRoller.MaxTime = 10
+	logger, err := GetOrCreateLogger(logName, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 1111 will be rotated to rollerName
+	logger.Print(buffer.NewIoBufferString("1111111"), false)
+	time.Sleep(11 * time.Second)
+	// 2222 will be writed in logName
+	logger.Print(buffer.NewIoBufferString("2222222"), false)
+	time.Sleep(1 * time.Second)
+	logger.Close() // stop the rotate
+
+	lines, err := readLines(logName)
+	if err != nil {
+		t.Fatalf("read %s error: %v", logName, err)
+	}
+	if len(lines) != 1 || lines[0] != "2222222" {
+		t.Fatalf("read %s data: %v, not expected", logName, lines)
+	}
+
+	lines, err = readLines(rollerName)
+	if err != nil {
+		t.Fatalf("read %s error: %v", rollerName, err)
+	}
+	if len(lines) != 1 || lines[0] != "1111111" {
+		t.Fatalf("read %s data: %v, not expected", rollerName, lines)
+	}
+	os.Remove(logName)
+	os.Remove(rollerName)
+}
