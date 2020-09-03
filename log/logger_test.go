@@ -336,7 +336,7 @@ func TestRotateWithFormat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	logName := "/tmp/mosn_bench/printdefaultroller.log"
+	logName := "/tmp/mosn_bench/TestRotateWithFormat.log"
 	rollerName := "/tmp/mosn_bench/" + "mosn-" + time.Now().Format("2006-01-02_15") + ".log"
 	os.Remove(logName)
 	os.Remove(rollerName)
