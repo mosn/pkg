@@ -48,3 +48,54 @@ func verifyFile(p string, data string) bool {
 	}
 	return string(b) == data
 }
+
+func TestNextDay(t *testing.T) {
+	t.Run("test dst in America/Los_Angeles", func(t *testing.T) {
+		loc, _ := time.LoadLocation("America/Los_Angeles")
+		fisrtTimeStr := "2020-11-01 00:00:00 -0700 PDT"
+		ft, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", fisrtTimeStr, loc)
+		d := nextDayDuration(ft, loc)
+		if d != 25*time.Hour { // rollback an hour, so next day is 25 hour
+			t.Fatalf("next day duration is %s", d)
+		}
+
+		secondTimeStr := "2021-03-14 00:00:00 -0800 PST"
+		st, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", secondTimeStr, loc)
+		d2 := nextDayDuration(st, loc)
+		if d2 != 23*time.Hour { // dst, next day is 23 hour
+			t.Fatalf("next day duration is %s", d)
+		}
+	})
+	t.Run("test utc time zone", func(t *testing.T) {
+		loc, _ := time.LoadLocation("UTC")
+		fisrtTimeStr := "2020-11-01 00:00:00 +0000 UTC"
+		ft, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", fisrtTimeStr, loc)
+		d := nextDayDuration(ft, loc)
+		if d != 24*time.Hour {
+			t.Fatalf("next day duration is %s", d)
+		}
+
+		secondTimeStr := "2021-03-14 00:00:00 +0000 UTC"
+		st, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", secondTimeStr, loc)
+		d2 := nextDayDuration(st, loc)
+		if d2 != 24*time.Hour {
+			t.Fatalf("next day duration is %s", d)
+		}
+
+	})
+	t.Run("test time.loal", func(t *testing.T) {
+		fisrtTimeStr := "2020-11-01 00:00:00"
+		ft, _ := time.ParseInLocation("2006-01-02 15:04:05", fisrtTimeStr, time.Local)
+		d := nextDayDuration(ft, time.Local)
+		if d != 24*time.Hour {
+			t.Fatalf("next day duration is %s", d)
+		}
+
+		secondTimeStr := "2021-03-14 00:00:00"
+		st, _ := time.ParseInLocation("2006-01-02 15:04:05", secondTimeStr, time.Local)
+		d2 := nextDayDuration(st, time.Local)
+		if d2 != 24*time.Hour {
+			t.Fatalf("next day duration is %s", d)
+		}
+	})
+}
