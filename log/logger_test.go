@@ -330,3 +330,24 @@ func TestRotateRightNow(t *testing.T) {
 		t.Fatalf("log rotate is not expected")
 	}
 }
+
+func TestDynamicLocalOffset(t *testing.T) {
+	l := &Logger{
+		roller: &Roller{
+			MaxTime: int64(24 * 60 * 60),
+		},
+	}
+	// simulate a location
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	today, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", "2020-11-01 00:00:00 -0700 PDT", loc)
+	for i := 0; i < 3; i++ {
+		interval := l.calcInterval(today)
+		tomorrow := today.Add(interval)
+		// rotate
+		today = tomorrow
+	}
+	ts := today.Format("2006-01-02 15:04:05")
+	if ts != "2020-11-03 00:00:00" {
+		t.Fatalf("time rotate not expected: %v", today)
+	}
+}
