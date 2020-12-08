@@ -400,13 +400,18 @@ func (l *Logger) startRotate() {
 var doRotate func(l *Logger, interval time.Duration) = doRotateFunc
 
 func doRotateFunc(l *Logger, interval time.Duration) {
+	timer := time.NewTimer(interval)
 	for {
-		timer := time.NewTimer(interval)
 		select {
 		case <-l.stopRotate:
 			return
 		case <-l.rollerUpdate:
-			timer.Stop()
+			if !timer.Stop() {
+				select {
+				case <-timer.C:
+				default:
+				}
+			}
 			now := time.Now()
 			interval = l.calcInterval(now)
 		case <-timer.C:
@@ -423,6 +428,7 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 				interval = time.Duration(l.roller.MaxTime) * time.Second
 			}
 		}
+		timer.Reset(interval)
 	}
 }
 
