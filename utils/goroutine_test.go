@@ -19,12 +19,21 @@ package utils
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"testing"
 	"time"
 )
 
+func debugIgnoreLogger(w io.Writer, r interface{}) {
+}
+
+func TestMain(m *testing.M) {
+	RegisterRecoverLogger(debugIgnoreLogger)
+	os.Exit(m.Run())
+}
+
 func TestGoWithRecover(t *testing.T) {
-	debugIgnoreStdout = true
 	panicStr := "test panic"
 	panicHandler := func() {
 		panic(panicStr)
@@ -42,7 +51,6 @@ func TestGoWithRecover(t *testing.T) {
 
 // recover handler panic, should not panic
 func TestRecoverPanic(t *testing.T) {
-	debugIgnoreStdout = true
 	handler := func() {
 		panic("1")
 	}
@@ -73,7 +81,6 @@ func (r *_run) exec() {
 }
 
 func TestGoWithRecoverAgain(t *testing.T) {
-	debugIgnoreStdout = true
 	r := &_run{}
 	r.work()
 	time.Sleep(time.Second)

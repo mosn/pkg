@@ -330,3 +330,67 @@ func TestRotateRightNow(t *testing.T) {
 		t.Fatalf("log rotate is not expected")
 	}
 }
+
+func TestDynamicLocalOffset(t *testing.T) {
+	l := &Logger{
+		roller: &Roller{
+			MaxTime: int64(24 * 60 * 60),
+		},
+	}
+	// simulate a location
+	loc, _ := time.LoadLocation("America/Los_Angeles")
+	today, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", "2020-11-01 00:00:00 -0700 PDT", loc)
+	for i := 0; i < 3; i++ {
+		interval := l.calculateInterval(today)
+		tomorrow := today.Add(interval)
+		// rotate
+		today = tomorrow
+	}
+	ts := today.Format("2006-01-02 15:04:05")
+	if ts != "2020-11-03 00:00:00" {
+		t.Fatalf("time rotate not expected: %v", today)
+	}
+}
+
+func TestDoRotateFunc(t *testing.T) {
+	notify := make(chan bool, 1)
+	registeNofify(notify)
+	roller := Roller{
+		MaxTime: 1000,                   // init by 1000 seconds
+		Handler: func(l *LoggerInfo) {}, // ignore, do nothing
+	}
+	l := &Logger{
+		output:       "test.log",
+		roller:       &roller,
+		stopRotate:   make(chan struct{}),
+		reopenChan:   make(chan struct{}, 100),
+		rollerUpdate: notify,
+	}
+	go doRotateFunc(l, 1000*time.Second)
+	select {
+	case <-l.reopenChan:
+		t.Fatalf("expected no reopen called, but received a reopen")
+	case <-time.After(2 * time.Second):
+	}
+	// mock update roller
+	roller = Roller{
+		MaxTime: 1,
+		Handler: func(l *LoggerInfo) {}, // ignore, do nothing
+	}
+	sendNotify()
+	reopens := 0
+WAIT:
+	for {
+		select {
+		case <-l.reopenChan:
+			reopens++
+			if reopens >= 2 {
+				break WAIT
+			}
+		case <-time.After(3 * time.Second):
+			t.Fatalf("atfer 3 seconds, got %d reopens, expected at least 2", reopens)
+		}
+	}
+	t.Logf("received %d reopens", reopens)
+	close(l.stopRotate)
+}
