@@ -134,7 +134,8 @@ func TestRollerHandler(t *testing.T) {
 	}
 	linfo := &LoggerInfo{
 		LogRoller: Roller{
-			MaxTime: defaultRotateTime,
+			MaxTime:    defaultRotateTime,
+			MaxBackups: 10,
 		},
 		FileName:   name,
 		CreateTime: time.Now(),

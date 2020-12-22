@@ -371,7 +371,7 @@ func (l *Logger) Fatalln(args ...interface{}) {
 	os.Exit(1)
 }
 
-func (l *Logger) calcInterval(now time.Time) time.Duration {
+func (l *Logger) calculateInterval(now time.Time) time.Duration {
 	// caculate the next time need to rotate
 	_, localOffset := now.Zone()
 	return time.Duration(l.roller.MaxTime-(now.Unix()+int64(localOffset))%l.roller.MaxTime) * time.Second
@@ -389,7 +389,7 @@ func (l *Logger) startRotate() {
 		if now.Sub(l.create) > time.Duration(l.roller.MaxTime)*time.Second {
 			interval = 0
 		} else {
-			interval = l.calcInterval(now)
+			interval = l.calculateInterval(now)
 		}
 		doRotate(l, interval)
 	}, func(r interface{}) {
@@ -413,7 +413,7 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 				}
 			}
 			now := time.Now()
-			interval = l.calcInterval(now)
+			interval = l.calculateInterval(now)
 		case <-timer.C:
 			now := time.Now()
 			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
@@ -422,8 +422,8 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 			l.create = now
 			go l.Reopen()
 
-			if interval == 0 { // recaculate interval
-				interval = l.calcInterval(now)
+			if interval == 0 { // recalculate interval
+				interval = l.calculateInterval(now)
 			} else {
 				interval = time.Duration(l.roller.MaxTime) * time.Second
 			}

@@ -26,6 +26,9 @@ import (
 
 var recoverLogger func(w io.Writer, r interface{}) = defaultRecoverLogger
 
+// RegisterRecoverLogger replace the log handler when go with recover catch a panic
+// notice the replaced handler should be simple.
+// if the handler panic, the recover handler will be failed.
 func RegisterRecoverLogger(f func(w io.Writer, r interface{})) {
 	recoverLogger = f
 }

@@ -124,7 +124,9 @@ func InitGlobalRoller(roller string) error {
 		return err
 	}
 	defaultRoller = *r
+
 	sendNotify()
+
 	return nil
 }
 
@@ -142,7 +144,6 @@ func DefaultRoller() *Roller {
 
 func rollerHandler(l *LoggerInfo) {
 	var filename string
-	generation := 0
 	// file roller
 	if l.LogRoller.MaxTime == defaultRotateTime {
 		filename = l.FileName + "." + l.CreateTime.Format("2006-01-02")
@@ -151,20 +152,25 @@ func rollerHandler(l *LoggerInfo) {
 	}
 
 	name := filename
+	maxGeneration := defaultRotateKeep
+	if l.LogRoller.MaxBackups > 0 {
+		maxGeneration = l.LogRoller.MaxBackups
+	}
 	// if rollerFile exists, add a generational name
-	for {
+	for generation := 0; generation <= maxGeneration; {
 		_, err := os.Stat(name)
 		// if os.Stat returns an error, maybe the file is not exists
 		// or have some permissions problems, try to write file
 		if err != nil {
 			filename = name
+
 			break
 		}
 		generation++
 		name = filename + "." + strconv.Itoa(generation)
 	}
 	// ignore the rename error, in case the l.output is deleted
-	os.Rename(l.FileName, filename)
+	_ = os.Rename(l.FileName, filename)
 }
 
 // ParseRoller parses roller contents out of c.

@@ -341,7 +341,7 @@ func TestDynamicLocalOffset(t *testing.T) {
 	loc, _ := time.LoadLocation("America/Los_Angeles")
 	today, _ := time.ParseInLocation("2006-01-02 15:04:05 -0700 MST", "2020-11-01 00:00:00 -0700 PDT", loc)
 	for i := 0; i < 3; i++ {
-		interval := l.calcInterval(today)
+		interval := l.calculateInterval(today)
 		tomorrow := today.Add(interval)
 		// rotate
 		today = tomorrow
