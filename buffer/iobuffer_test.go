@@ -295,7 +295,7 @@ func TestIoBufferReadOnce(t *testing.T) {
 	s := randString(25)
 	reader := bytes.NewReader([]byte(s))
 
-	n, err := b.ReadOnce(reader)
+	n, _, err := b.ReadOnce(reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -317,7 +317,7 @@ func TestIoBufferReadOnce(t *testing.T) {
 	reader = bytes.NewReader([]byte(s))
 
 	// first read  1<<minShift
-	n, err = b.ReadOnce(reader)
+	n, _, err = b.ReadOnce(reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -330,7 +330,7 @@ func TestIoBufferReadOnce(t *testing.T) {
 	}
 
 	//second read  MinRead<<1 - 1<<minShift
-	n, err = b.ReadOnce(reader)
+	n, _, err = b.ReadOnce(reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -343,7 +343,7 @@ func TestIoBufferReadOnce(t *testing.T) {
 	}
 
 	// third read  bsize - MinRead<<1
-	n, err = b.ReadOnce(reader)
+	n, _, err = b.ReadOnce(reader)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -471,7 +471,7 @@ func TestIoBufferMaxBufferReadOnce(t *testing.T) {
 	reader := bytes.NewReader([]byte(s))
 	countbytes := 0
 	for {
-		n, err := b.ReadOnce(reader)
+		n, _, err := b.ReadOnce(reader)
 		if err != nil {
 			if err == io.EOF {
 				break
