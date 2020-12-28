@@ -24,11 +24,12 @@ import (
 	"time"
 )
 
+// bufferchain queue is full
 var ErrWriteCovered = errors.New("chain write covered")
 
-/**
-For HTTP2 stream, in order not to break the structure-adaptation interface
-*/
+/*
+ * For HTTP2 stream, in order not to break the structure-adaptation interface
+ */
 type ioBufferchain struct {
 	bufferchain chan []byte
 	errChan     chan error
@@ -146,7 +147,6 @@ func (bc *ioBufferchain) Peek(n int) []byte {
 }
 
 func (bc *ioBufferchain) Drain(offset int) {
-	return
 }
 
 func (bc *ioBufferchain) Cap() int {
@@ -164,11 +164,9 @@ func (bc *ioBufferchain) String() string {
 }
 
 func (bc *ioBufferchain) Alloc(int) {
-	return
 }
 
 func (bc *ioBufferchain) Free() {
-	return
 }
 
 func (bc *ioBufferchain) EOF() bool {
@@ -176,7 +174,6 @@ func (bc *ioBufferchain) EOF() bool {
 }
 
 func (bc *ioBufferchain) SetEOF(eof bool) {
-	return
 }
 
 func (bc *ioBufferchain) Append(data []byte) error {
