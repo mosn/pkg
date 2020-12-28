@@ -27,6 +27,8 @@ import (
 // bufferchain queue is full.
 var ErrWriteCovered = errors.New("chain write covered")
 
+const defaultCapacity = 1 << 9
+
 /*
  * For HTTP2 stream, in order not to break the structure-adaptation interface.
  */
@@ -39,8 +41,9 @@ type ioBufferchain struct {
 // NewIoBufferChain returns bufferChain
 func NewIoBufferChain(capacity int) *ioBufferchain {
 	if capacity == 0 {
-		capacity = 1 << 9
+		capacity = defaultCapacity
 	}
+
 	return &ioBufferchain{
 		bufferchain: make(chan []byte, capacity),
 		errChan:     make(chan error),
@@ -52,6 +55,7 @@ func (bc *ioBufferchain) Bytes() (p []byte) {
 	if !b {
 		return nil
 	}
+
 	return p
 }
 
