@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package buffer
 
 import (
@@ -9,8 +26,10 @@ import (
 
 var ErrWriteCovered = errors.New("chain write covered")
 
+/**
+For HTTP2 stream, in order not to break the structure-adaptation interface
+*/
 type ioBufferchain struct {
-	IoBuffer
 	bufferchain chan []byte
 	errChan     chan error
 	mutex       sync.Mutex
@@ -62,7 +81,7 @@ func (bc *ioBufferchain) Write(p []byte) (n int, err error) {
 	}
 }
 
-func (bc *ioBufferchain) CloseWithError(err error) {
+func (bc *ioBufferchain) CloseWithError(_ error) {
 	select {
 	case <-bc.errChan:
 		return
@@ -80,4 +99,86 @@ func (bc *ioBufferchain) Count(int32) int32 {
 
 func (bc *ioBufferchain) Len() int {
 	return 0
+}
+
+func (bc *ioBufferchain) Read(p []byte) (n int, err error) {
+	return 0, EOF
+}
+
+func (bc *ioBufferchain) ReadOnce(r io.Reader) (n int64, err error) {
+	return 0, EOF
+}
+
+func (bc *ioBufferchain) ReadFrom(r io.Reader) (n int64, err error) {
+	return 0, EOF
+}
+
+func (bc *ioBufferchain) Grow(n int) error {
+	return EOF
+}
+
+func (bc *ioBufferchain) WriteString(s string) (n int, err error) {
+	return 0, EOF
+}
+
+func (bc *ioBufferchain) WriteByte(p byte) error {
+	return EOF
+}
+
+func (bc *ioBufferchain) WriteUint16(p uint16) error {
+	return EOF
+}
+
+func (bc *ioBufferchain) WriteUint32(p uint32) error {
+	return EOF
+}
+
+func (bc *ioBufferchain) WriteUint64(p uint64) error {
+	return EOF
+}
+
+func (bc *ioBufferchain) WriteTo(w io.Writer) (n int64, err error) {
+	return 0, EOF
+}
+
+func (bc *ioBufferchain) Peek(n int) []byte {
+	return nil
+}
+
+func (bc *ioBufferchain) Drain(offset int) {
+	return
+}
+
+func (bc *ioBufferchain) Cap() int {
+	return 0
+}
+
+func (bc *ioBufferchain) Reset() {}
+
+func (bc *ioBufferchain) Clone() IoBuffer {
+	return nil
+}
+
+func (bc *ioBufferchain) String() string {
+	return ""
+}
+
+func (bc *ioBufferchain) Alloc(int) {
+	return
+}
+
+func (bc *ioBufferchain) Free() {
+	return
+}
+
+func (bc *ioBufferchain) EOF() bool {
+	return true
+}
+
+func (bc *ioBufferchain) SetEOF(eof bool) {
+	return
+}
+
+func (bc *ioBufferchain) Append(data []byte) error {
+	return EOF
 }

@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package buffer
 
 import (
@@ -14,23 +31,25 @@ func TestBufferWrite(t *testing.T) {
 	write := func(i *int32) error {
 		bytes := make([]byte, 1)
 		_, err := chain.Write(bytes)
-		if err != nil {
-			t.Logf("errs: %v", err)
-			return err
+		if err == nil {
+			atomic.AddInt32(i, 1)
 		}
-		atomic.AddInt32(i, 1)
-		return nil
+		return err
 	}
 	var i int32
 	go func() {
-		for i < 20 {
-			err := write(&i)
+		var err error
+		for i <= 20 {
+			err = write(&i)
 			if err != nil {
 				break
 			}
 		}
+		assert.Equal(t, i, int32(10))
+		err = write(&i)
+		assert.Error(t, err)
 	}()
-	time.Sleep(1 * time.Second / 2)
+	time.Sleep(2 * time.Second)
 	chain.CloseWithError(nil)
 	assert.Equal(t, i, int32(10))
 }
