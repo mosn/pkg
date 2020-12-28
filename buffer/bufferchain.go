@@ -24,11 +24,11 @@ import (
 	"time"
 )
 
-// bufferchain queue is full
+// bufferchain queue is full.
 var ErrWriteCovered = errors.New("chain write covered")
 
 /*
- * For HTTP2 stream, in order not to break the structure-adaptation interface
+ * For HTTP2 stream, in order not to break the structure-adaptation interface.
  */
 type ioBufferchain struct {
 	bufferchain chan []byte
@@ -36,6 +36,7 @@ type ioBufferchain struct {
 	mutex       sync.Mutex
 }
 
+// NewIoBufferChain returns bufferChain
 func NewIoBufferChain(capacity int) *ioBufferchain {
 	if capacity == 0 {
 		capacity = 1 << 9
@@ -74,6 +75,7 @@ func (bc *ioBufferchain) Write(p []byte) (n int, err error) {
 				return 0, io.EOF
 			case bc.bufferchain <- bytes:
 				ticker.Stop()
+
 				return len(bytes), nil
 			case <-ticker.C:
 				return 0, ErrWriteCovered
