@@ -39,8 +39,8 @@ type ioBufferchain struct {
 	mutex       sync.Mutex
 }
 
-// NewIoBufferChain returns bufferChain.
-func NewIoBufferChain(capacity int) IoBuffer {
+// NewIoBufferChain returns *bufferChain.
+func NewIoBufferChain(capacity int) *ioBufferchain {
 	if capacity == 0 {
 		capacity = defaultCapacity
 	}
