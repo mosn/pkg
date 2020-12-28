@@ -24,12 +24,13 @@ import (
 	"time"
 )
 
-// bufferchain queue is full.
+// ErrWriteCovered bufferchain queue is full.
 var ErrWriteCovered = errors.New("chain write covered")
 
 const defaultCapacity = 1 << 9
 
 /*
+ * ioBufferchain
  * For HTTP2 stream, in order not to break the structure-adaptation interface.
  */
 type ioBufferchain struct {
@@ -38,8 +39,8 @@ type ioBufferchain struct {
 	mutex       sync.Mutex
 }
 
-// NewIoBufferChain returns bufferChain
-func NewIoBufferChain(capacity int) *ioBufferchain {
+// NewIoBufferChain returns bufferChain.
+func NewIoBufferChain(capacity int) IoBuffer {
 	if capacity == 0 {
 		capacity = defaultCapacity
 	}
