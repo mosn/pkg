@@ -21,8 +21,6 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 //Test write
@@ -45,13 +43,17 @@ func TestBufferWrite(t *testing.T) {
 				break
 			}
 		}
-		assert.Equal(t, i, int32(10))
+
+		if i != 10 {
+			t.Errorf("Capacity of bufferchain error %d", i)
+		}
 		err = write(&i)
-		assert.Error(t, err)
+		if err == nil {
+			t.Error("Consumption timeout err")
+		}
 	}()
 	time.Sleep(2 * time.Second)
 	chain.CloseWithError(nil)
-	assert.Equal(t, i, int32(10))
 }
 
 func TestBufferReade(t *testing.T) {
@@ -70,5 +72,7 @@ func TestBufferReade(t *testing.T) {
 	}()
 	time.Sleep(1 * time.Second)
 	chain.CloseWithError(nil)
-	assert.Equal(t, i, int32(2))
+	if i != 2 {
+		t.Error("Message number error")
+	}
 }
