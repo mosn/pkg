@@ -19,14 +19,7 @@ package utils
 
 import (
 	"os"
-	"syscall"
 	"time"
-)
-
-var (
-	// keep the standard for recover
-	standardStdoutFd, _ = syscall.Dup(int(os.Stdout.Fd()))
-	standardStderrFd, _ = syscall.Dup(int(os.Stderr.Fd()))
 )
 
 // SetHijackStdPipeline hijacks stdout and stderr outputs into the file path
