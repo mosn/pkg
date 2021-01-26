@@ -8,5 +8,5 @@ require (
 	github.com/stretchr/testify v1.7.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	mosn.io/api v0.0.0-20210125030935-708f51a98261
+	mosn.io/api v0.0.0-20210126133846-21352120c3a8
 )
