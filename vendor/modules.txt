@@ -1,4 +1,18 @@
+# github.com/davecgh/go-spew v1.1.0
+github.com/davecgh/go-spew/spew
 # github.com/hashicorp/go-syslog v1.0.0
 github.com/hashicorp/go-syslog
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563
+github.com/rcrowley/go-metrics
+# github.com/stretchr/testify v1.7.0
+github.com/stretchr/testify/assert
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
+gopkg.in/yaml.v3
+# mosn.io/api v0.0.0-20210125030935-708f51a98261
+mosn.io/api
+mosn.io/api/protocol/xprotocol
+mosn.io/api/types

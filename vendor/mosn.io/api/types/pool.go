@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package buffer
+package types
 
-import (
-	"mosn.io/api"
+// PoolMode is whether PingPong or multiplex
+type PoolMode int
+
+const (
+	PingPong PoolMode = iota
+	Multiplex
+	TCP
 )
-
-// BufferPoolCtx is the bufferpool's context
-type BufferPoolCtx = api.BufferPoolCtx
-
-type IoBuffer = api.IoBuffer

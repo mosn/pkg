@@ -15,13 +15,20 @@
  * limitations under the License.
  */
 
-package buffer
+package api
 
-import (
-	"mosn.io/api"
+type ProtocolResourceName string
+
+// protocol resource name
+const (
+	// full uri contains path + args
+	URI ProtocolResourceName = "URI"
+	// only path not contains args
+	PATH ProtocolResourceName = "PATH"
+	// only arguments
+	ARG ProtocolResourceName = "ARG"
+
+	SCHEME ProtocolResourceName = "scheme"
+	HEADER ProtocolResourceName = "header"
+	COOKIE ProtocolResourceName = "cookie"
 )
-
-// BufferPoolCtx is the bufferpool's context
-type BufferPoolCtx = api.BufferPoolCtx
-
-type IoBuffer = api.IoBuffer

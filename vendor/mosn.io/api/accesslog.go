@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-package buffer
+package api
 
 import (
-	"mosn.io/api"
+	"context"
 )
 
-// BufferPoolCtx is the bufferpool's context
-type BufferPoolCtx = api.BufferPoolCtx
+//    The bunch of interfaces are used to print the access log in format designed by users.
+//    Access log format consists of three parts, which are "RequestInfoFormat", "RequestHeaderFormat"
+//    and "ResponseHeaderFormat", also you can get details by reading "AccessLogDetails.md".
 
-type IoBuffer = api.IoBuffer
+// AccessLog is a log object that used to log the access info.
+type AccessLog interface {
+	// Log write the access info.
+	Log(ctx context.Context, reqHeaders HeaderMap, respHeaders HeaderMap, requestInfo RequestInfo)
+}
