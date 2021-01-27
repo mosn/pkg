@@ -18,12 +18,30 @@
 package buffer
 
 import (
-	"mosn.io/api"
+	"context"
 )
 
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
+var ins = ByteBufferCtx{}
 
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
+func init() {
+	RegisterBuffer(&ins)
+}
+
+type ByteBufferCtx struct {
+	TempBufferCtx
+}
+
+func (ctx ByteBufferCtx) New() interface{} {
+	return NewByteBufferPoolContainer()
+}
+
+func (ctx ByteBufferCtx) Reset(i interface{}) {
+	p := i.(*ByteBufferPoolContainer)
+	p.Reset()
+}
+
+// GetBytesByContext returns []byte from byteBufferPool by context
+func GetBytesByContext(context context.Context, size int) *[]byte {
+	p := PoolContext(context).Find(&ins, nil).(*ByteBufferPoolContainer)
+	return p.Take(size)
+}
