@@ -36,23 +36,6 @@ const (
 	Response = "Response"
 )
 
-// Host key for routing in MOSN Header
-const (
-	MosnHeaderDirection       = "x-mosn-direction" // for protocol convert
-	MosnHeaderScheme          = "x-mosn-scheme"
-	MosnHeaderHostKey         = "x-mosn-host"
-	MosnHeaderPathKey         = "x-mosn-path"
-	MosnHeaderQueryStringKey  = "x-mosn-querystring"
-	MosnHeaderMethod          = "x-mosn-method"
-	MosnOriginalHeaderPathKey = "x-mosn-original-path"
-)
-
-// Hseader with special meaning in istio
-// todo maybe use ":authority"
-const (
-	IstioHeaderHostKey = "authority"
-)
-
 // TODO: move CommonHeader to common, not only in protocol
 
 // CommonHeader wrapper for map[string]string
