@@ -15,15 +15,31 @@
  * limitations under the License.
  */
 
-package buffer
+package api
 
 import (
-	"mosn.io/api"
+	"fmt"
+	"strings"
+	"time"
 )
 
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
+// Metadata field can be used to provide additional information about the route.
+// It can be used for configuration, stats, and logging.
+// The metadata should go under the filter namespace that will need it.
+type Metadata map[string]string
 
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
+// DurationConfig ia a wrapper for time.Duration, so time config can be written in '300ms' or '1h' format
+type DurationConfig struct {
+	time.Duration
+}
+
+// UnmarshalJSON get DurationConfig.Duration from json file
+func (d *DurationConfig) UnmarshalJSON(b []byte) (err error) {
+	d.Duration, err = time.ParseDuration(strings.Trim(string(b), `"`))
+	return
+}
+
+// MarshalJSON
+func (d DurationConfig) MarshalJSON() (b []byte, err error) {
+	return []byte(fmt.Sprintf(`"%s"`, d.String())), nil
+}

@@ -15,15 +15,32 @@
  * limitations under the License.
  */
 
-package buffer
+package protocol
 
 import (
+	"context"
+	"errors"
+
 	"mosn.io/api"
 )
 
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
+var (
+	httpMappingFactory = make(map[api.Protocol]HTTPMapping)
+	ErrNoMapping       = errors.New("no mapping function found")
+)
 
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
+// HTTPMapping maps the contents of protocols to HTTP standard
+type HTTPMapping interface {
+	MappingHeaderStatusCode(ctx context.Context, headers api.HeaderMap) (int, error)
+}
+
+func RegisterMapping(p api.Protocol, m HTTPMapping) {
+	httpMappingFactory[p] = m
+}
+
+func MappingHeaderStatusCode(ctx context.Context, p api.Protocol, headers api.HeaderMap) (int, error) {
+	if f, ok := httpMappingFactory[p]; ok {
+		return f.MappingHeaderStatusCode(ctx, headers)
+	}
+	return 0, ErrNoMapping
+}

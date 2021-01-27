@@ -15,15 +15,48 @@
  * limitations under the License.
  */
 
-package buffer
+package types
 
 import (
+	"context"
+	"time"
+
 	"mosn.io/api"
 )
 
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
+// factory
+type TracerBuilder func(config map[string]interface{}) (Tracer, error)
 
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
+type Driver interface {
+	Init(config map[string]interface{}) error
+
+	Register(proto api.Protocol, builder TracerBuilder)
+
+	Get(proto api.Protocol) Tracer
+}
+
+type Tracer interface {
+	Start(ctx context.Context, request interface{}, startTime time.Time) Span
+}
+
+type Span interface {
+	TraceId() string
+
+	SpanId() string
+
+	ParentSpanId() string
+
+	SetOperation(operation string)
+
+	SetTag(key uint64, value string)
+
+	SetRequestInfo(requestInfo api.RequestInfo)
+
+	Tag(key uint64) string
+
+	FinishSpan()
+
+	InjectContext(requestHeaders api.HeaderMap, requestInfo api.RequestInfo)
+
+	SpawnChild(operationName string, startTime time.Time) Span
+}

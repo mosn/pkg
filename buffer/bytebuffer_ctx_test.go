@@ -14,16 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package buffer
 
 import (
-	"mosn.io/api"
+	"context"
+	"testing"
 )
 
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
-
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
+func Test_ByteBuffer(t *testing.T) {
+	ctx := NewBufferPoolContext(context.Background())
+	b := GetBytesByContext(ctx, 1000)
+	if len(*b) != 1000 {
+		t.Errorf("bytes len should %d", 1000)
+	}
+	if cap(*b) != 1024 {
+		t.Errorf("bytes cap should %d", 1024)
+	}
+	bv := PoolContext(ctx)
+	bv.Give()
+}

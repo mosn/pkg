@@ -15,15 +15,23 @@
  * limitations under the License.
  */
 
-package buffer
+package context
 
 import (
-	"mosn.io/api"
+	"context"
+
+	"mosn.io/api/types"
 )
 
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
+type valueCtx struct {
+	context.Context
 
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
+	builtin [types.ContextKeyEnd]interface{}
+}
+
+func (c *valueCtx) Value(key interface{}) interface{} {
+	if contextKey, ok := key.(types.ContextKey); ok {
+		return c.builtin[contextKey]
+	}
+	return c.Context.Value(key)
+}
