@@ -67,6 +67,11 @@ func GetMatcher(name api.Protocol) types.ProtocolMatch {
 	return matcherMap[name]
 }
 
+//GetMatchers return all matchers that was registered
+func GetMatchers() map[api.Protocol]types.ProtocolMatch {
+	return matcherMap
+}
+
 // RegisterMapping register the HTTP status code mapping function of the protocol into factory
 func RegisterMapping(name api.Protocol, mapping protocol.HTTPMapping) error {
 	// check name conflict

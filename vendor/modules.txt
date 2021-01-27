@@ -12,7 +12,7 @@ github.com/stretchr/testify/assert
 gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 gopkg.in/yaml.v3
-# mosn.io/api v0.0.0-20210126133846-21352120c3a8
+# mosn.io/api v0.0.0-20210127060508-0f74fbd7eea2
 mosn.io/api
 mosn.io/api/protocol/xprotocol
 mosn.io/api/types
