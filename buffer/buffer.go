@@ -23,8 +23,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"mosn.io/api/types"
-
 	mosnctx "mosn.io/pkg/context"
 )
 
@@ -111,7 +109,7 @@ type BufferValue struct {
 
 // NewBufferPoolContext returns a context with BufferValue
 func NewBufferPoolContext(ctx context.Context) context.Context {
-	return mosnctx.WithValue(ctx, types.ContextKeyBufferPoolCtx, newBufferValue())
+	return mosnctx.WithValue(ctx, mosnctx.ContextKeyBufferPoolCtx, newBufferValue())
 }
 
 // TransmitBufferPoolContext copy a context
@@ -182,7 +180,7 @@ func (bv *BufferValue) Give() {
 // PoolContext returns BufferValue by context
 func PoolContext(ctx context.Context) *BufferValue {
 	if ctx != nil {
-		if val := mosnctx.Get(ctx, types.ContextKeyBufferPoolCtx); val != nil {
+		if val := mosnctx.Get(ctx, mosnctx.ContextKeyBufferPoolCtx); val != nil {
 			return val.(*BufferValue)
 		}
 	}

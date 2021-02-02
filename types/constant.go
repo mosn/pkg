@@ -17,39 +17,6 @@
 
 package types
 
-import (
-	"errors"
-
-	"mosn.io/api"
-)
-
-// MOSN Header keys
-const (
-	HeaderGlobalTimeout = "x-mosn-global-timeout"
-	HeaderTryTimeout    = "x-mosn-try-timeout"
-	HeaderOriginalPath  = "x-mosn-original-path"
-)
-
-// Error messages
-const (
-	ChannelFullException = "Channel is full"
-	CodecException       = "codec exception occurs"
-	SerializeException   = "serialize exception occurs"
-	DeserializeException = "deserialize exception occurs"
-
-	NoStatusCodeForHijackException = "no status code found for hijack reply"
-)
-
-// Errors
-var (
-	ErrChanFull             = errors.New(ChannelFullException)
-	ErrCodecException       = errors.New(CodecException)
-	ErrSerializeException   = errors.New(SerializeException)
-	ErrDeserializeException = errors.New(DeserializeException)
-
-	ErrNoStatusCodeForHijack = errors.New(NoStatusCodeForHijackException)
-)
-
 // Error codes, used by top level logic code(like proxy logic).
 const (
 	CodecExceptionCode    = 0
@@ -63,10 +30,4 @@ const (
 	UpstreamOverFlowCode  = 503
 	TimeoutExceptionCode  = 504
 	LimitExceededCode     = 509
-)
-
-// ResponseFlags sets
-const (
-	MosnProcessFailedFlags = api.NoHealthyUpstream | api.NoRouteFound | api.UpstreamLocalReset |
-		api.FaultInjected | api.RateLimited | api.DownStreamTerminate | api.ReqEntityTooLarge
 )

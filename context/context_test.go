@@ -23,18 +23,16 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"mosn.io/api/types"
 )
 
 const testNodeNum = 10
 
-var randomTable [testNodeNum]types.ContextKey
+var randomTable [testNodeNum]ContextKey
 
 func init() {
 	// init random table per-run for all benchmark scenario, so the performance will not be affected by random functions.
 	for i := 0; i < testNodeNum; i++ {
-		randomTable[i] = types.ContextKey(rand.Intn(int(types.ContextKeyEnd)))
+		randomTable[i] = ContextKey(rand.Intn(int(ContextKeyEnd)))
 	}
 }
 
@@ -43,17 +41,17 @@ func TestClone(t *testing.T) {
 	ctx := context.Background()
 
 	// set
-	ctx = WithValue(ctx, types.ContextKeyListenerType, expected)
+	ctx = WithValue(ctx, ContextKeyListenerType, expected)
 
 	// get
-	value := ctx.Value(types.ContextKeyListenerType)
+	value := ctx.Value(ContextKeyListenerType)
 	listenerType, ok := value.(string)
 	assert.True(t, ok)
 	assert.Equal(t, listenerType, expected)
 
 	ctxNew := Clone(ctx)
 	// get
-	value = ctxNew.Value(types.ContextKeyListenerType)
+	value = ctxNew.Value(ContextKeyListenerType)
 	listenerType, ok = value.(string)
 	assert.True(t, ok)
 	assert.Equal(t, listenerType, expected)
@@ -69,17 +67,17 @@ func TestSetGet(t *testing.T) {
 	ctx := context.Background()
 
 	// set
-	ctx = WithValue(ctx, types.ContextKeyListenerType, expected)
+	ctx = WithValue(ctx, ContextKeyListenerType, expected)
 
 	// get
-	value := ctx.Value(types.ContextKeyListenerType)
+	value := ctx.Value(ContextKeyListenerType)
 	listenerType, ok := value.(string)
 	assert.True(t, ok)
 	assert.Equal(t, listenerType, expected)
 
 	// parent is valueCtx, withValue test
-	ctx2 := WithValue(ctx, types.ContextKeyConnectionID, "1")
-	connIDValue := ctx2.Value(types.ContextKeyConnectionID)
+	ctx2 := WithValue(ctx, ContextKeyConnectionID, "1")
+	connIDValue := ctx2.Value(ContextKeyConnectionID)
 	connID, ok := connIDValue.(string)
 	assert.True(t, ok)
 	assert.Equal(t, connID, "1")
@@ -87,7 +85,7 @@ func TestSetGet(t *testing.T) {
 	// mosn context is different from the std context
 	//     if you add a k v in the child context
 	//     the parent context will also change
-	connIDValue = ctx.Value(types.ContextKeyConnectionID)
+	connIDValue = ctx.Value(ContextKeyConnectionID)
 	connID, ok = connIDValue.(string)
 	assert.True(t, ok)
 	assert.Equal(t, connID, "1")
@@ -98,13 +96,13 @@ func TestSetGet(t *testing.T) {
 	assert.Nil(t, value)
 
 	// another way to get
-	value = Get(ctx, types.ContextKeyListenerType)
+	value = Get(ctx, ContextKeyListenerType)
 	listenerType, ok = value.(string)
 	assert.True(t, ok)
 	assert.Equal(t, listenerType, expected)
 
 	// std context
-	value = Get(context.TODO(), types.ContextKeyStreamID)
+	value = Get(context.TODO(), ContextKeyStreamID)
 	assert.Nil(t, value)
 }
 

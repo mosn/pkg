@@ -19,18 +19,56 @@ package context
 
 import (
 	"context"
+)
 
-	"mosn.io/api/types"
+// ContextKey type
+type ContextKey int
+
+// Context key types(built-in)
+const (
+	ContextKeyStreamID ContextKey = iota
+	ContextKeyConnection
+	ContextKeyConnectionID
+	ContextKeyConnectionPoolIndex
+	ContextKeyListenerPort
+	ContextKeyListenerName
+	ContextKeyListenerType
+	ContextKeyListenerStatsNameSpace
+	ContextKeyNetworkFilterChainFactories
+	ContextKeyBufferPoolCtx
+	ContextKeyAccessLogs
+	ContextOriRemoteAddr
+	ContextKeyAcceptChan
+	ContextKeyAcceptBuffer
+	ContextKeyConnectionFd
+	ContextSubProtocol
+	ContextKeyTraceSpanKey
+	ContextKeyActiveSpan
+	ContextKeyTraceId
+	ContextKeyVariables
+	ContextKeyProxyGeneralConfig
+	ContextKeyDownStreamProtocol
+	ContextKeyConfigDownStreamProtocol
+	ContextKeyConfigUpStreamProtocol
+	ContextKeyDownStreamHeaders
+	ContextKeyDownStreamRespHeaders
+	ContextKeyEnd
+)
+
+// GlobalProxyName represents proxy name for metrics
+const (
+	GlobalProxyName       = "global"
+	GlobalShutdownTimeout = "GlobalShutdownTimeout"
 )
 
 type valueCtx struct {
 	context.Context
 
-	builtin [types.ContextKeyEnd]interface{}
+	builtin [ContextKeyEnd]interface{}
 }
 
 func (c *valueCtx) Value(key interface{}) interface{} {
-	if contextKey, ok := key.(types.ContextKey); ok {
+	if contextKey, ok := key.(ContextKey); ok {
 		return c.builtin[contextKey]
 	}
 	return c.Context.Value(key)

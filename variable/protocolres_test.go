@@ -22,20 +22,19 @@ import (
 	"testing"
 
 	"mosn.io/api"
-	"mosn.io/api/types"
 
 	mosnctx "mosn.io/pkg/context"
 )
 
 const (
-	HTTP1 api.Protocol = "Http1"
-	Dubbo api.Protocol = "Dubbo"
+	HTTP1 api.ProtocolName = "Http1"
+	Dubbo api.ProtocolName = "Dubbo"
 )
 
 func TestGetProtocolResource(t *testing.T) {
 	m := make(map[string]string)
-	httpKey := string(HTTP1) + "_" + types.VarProtocolRequestPath
-	dubboKey := string(Dubbo) + "_" + types.VarProtocolRequestPath
+	httpKey := string(HTTP1) + "_" + VarProtocolRequestPath
+	dubboKey := string(Dubbo) + "_" + VarProtocolRequestPath
 	m[httpKey] = "/http"
 	m[dubboKey] = "/dubbo"
 
@@ -48,11 +47,11 @@ func TestGetProtocolResource(t *testing.T) {
 	}
 
 	// register HTTP protocol resource var
-	RegisterProtocolResource(HTTP1, api.PATH, types.VarProtocolRequestPath)
+	RegisterProtocolResource(HTTP1, api.PATH, VarProtocolRequestPath)
 
 	ctx := context.Background()
 
-	ctx = mosnctx.WithValue(ctx, types.ContextKeyDownStreamProtocol, HTTP1)
+	ctx = mosnctx.WithValue(ctx, mosnctx.ContextKeyDownStreamProtocol, HTTP1)
 	vv, err := GetProtocolResource(ctx, api.PATH)
 	if err != nil {
 		t.Error(err)
@@ -62,7 +61,7 @@ func TestGetProtocolResource(t *testing.T) {
 		t.Errorf("get value not equal, expected: %s, acutal: %s", m[httpKey], vv)
 	}
 
-	ctx = mosnctx.WithValue(ctx, types.ContextKeyDownStreamProtocol, Dubbo)
+	ctx = mosnctx.WithValue(ctx, mosnctx.ContextKeyDownStreamProtocol, Dubbo)
 	vv, err = GetProtocolResource(ctx, api.PATH)
 	if err.Error() != errUnregisterProtocolResource+string(Dubbo) {
 		t.Fatal("unexpected get error")
@@ -102,6 +101,6 @@ func prepareProtocolResource() context.Context {
 	RegisterProtocolResource(HTTP1, api.PATH, name)
 
 	ctx := context.Background()
-	ctx = mosnctx.WithValue(ctx, types.ContextKeyDownStreamProtocol, HTTP1)
+	ctx = mosnctx.WithValue(ctx, mosnctx.ContextKeyDownStreamProtocol, HTTP1)
 	return ctx
 }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package xprotocol
+package types
 
 import (
 	"unsafe"

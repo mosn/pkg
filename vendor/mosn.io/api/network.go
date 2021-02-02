@@ -25,7 +25,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
-// ConnState represents connection status
+// Connection status
 type ConnState int
 
 // Connection statuses

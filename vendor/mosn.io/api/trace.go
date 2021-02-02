@@ -15,32 +15,46 @@
  * limitations under the License.
  */
 
-package protocol
+package api
 
 import (
 	"context"
-	"errors"
-
-	"mosn.io/api"
+	"time"
 )
 
-var (
-	httpMappingFactory = make(map[api.Protocol]HTTPMapping)
-	ErrNoMapping       = errors.New("no mapping function found")
-)
+// factory
+type TracerBuilder func(config map[string]interface{}) (Tracer, error)
 
-// HTTPMapping maps the contents of protocols to HTTP standard
-type HTTPMapping interface {
-	MappingHeaderStatusCode(ctx context.Context, headers api.HeaderMap) (int, error)
+type Driver interface {
+	Init(config map[string]interface{}) error
+
+	Register(proto ProtocolName, builder TracerBuilder)
+
+	Get(proto ProtocolName) Tracer
 }
 
-func RegisterMapping(p api.Protocol, m HTTPMapping) {
-	httpMappingFactory[p] = m
+type Tracer interface {
+	Start(ctx context.Context, request interface{}, startTime time.Time) Span
 }
 
-func MappingHeaderStatusCode(ctx context.Context, p api.Protocol, headers api.HeaderMap) (int, error) {
-	if f, ok := httpMappingFactory[p]; ok {
-		return f.MappingHeaderStatusCode(ctx, headers)
-	}
-	return 0, ErrNoMapping
+type Span interface {
+	TraceId() string
+
+	SpanId() string
+
+	ParentSpanId() string
+
+	SetOperation(operation string)
+
+	SetTag(key uint64, value string)
+
+	SetRequestInfo(requestInfo RequestInfo)
+
+	Tag(key uint64) string
+
+	FinishSpan()
+
+	InjectContext(requestHeaders HeaderMap, requestInfo RequestInfo)
+
+	SpawnChild(operationName string, startTime time.Time) Span
 }

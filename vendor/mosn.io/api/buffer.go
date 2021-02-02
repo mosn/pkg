@@ -31,7 +31,6 @@ type BufferPoolCtx interface {
 	Reset(interface{})
 }
 
-// IoBuffer represents io buffer
 type IoBuffer interface {
 	// Read reads the next len(p) bytes from the buffer or until the buffer
 	// is drained. The return value n is the number of bytes read. If the
