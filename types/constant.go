@@ -15,15 +15,19 @@
  * limitations under the License.
  */
 
-package buffer
+package types
 
-import (
-	"mosn.io/api"
+// Error codes, used by top level logic code(like proxy logic).
+const (
+	CodecExceptionCode    = 0
+	UnknownCode           = 2
+	DeserialExceptionCode = 3
+	SuccessCode           = 200
+	PermissionDeniedCode  = 403
+	RouterUnavailableCode = 404
+	InternalErrorCode     = 500
+	NoHealthUpstreamCode  = 502
+	UpstreamOverFlowCode  = 503
+	TimeoutExceptionCode  = 504
+	LimitExceededCode     = 509
 )
-
-// BufferPoolCtx is the bufferpool's context
-// Deprecated: use mosn.io/api/buffer.go:BufferPoolCtx instead
-type BufferPoolCtx = api.BufferPoolCtx
-
-// Deprecated: use mosn.io/api/buffer.go:IoBuffer instead
-type IoBuffer = api.IoBuffer
