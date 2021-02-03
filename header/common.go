@@ -17,11 +17,9 @@
 
 package types
 
-import (
-	"mosn.io/api"
-)
+import "mosn.io/api"
 
-// CommonHeader wrapper for map[string]string
+// CommonHeader wrapper for map[string]string, is an implementation of api.HeaderMap
 type CommonHeader map[string]string
 
 // Get value of key
