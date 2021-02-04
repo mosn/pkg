@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package types
+package header
 
 import (
 	"encoding/binary"
