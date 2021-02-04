@@ -7,5 +7,5 @@ require (
 	github.com/hashicorp/go-syslog v1.0.0
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	mosn.io/api v0.0.0-20210203133328-d332ebe7314e
+	mosn.io/api v0.0.0-20210204052134-5b9a826795fd
 )

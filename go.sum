@@ -10,5 +10,5 @@ gopkg.in/natefinch/lumberjack.v2 v2.0.0 h1:1Lc07Kr7qY4U2YPouBjpCLxpiyxIVoxqXgkXL
 gopkg.in/natefinch/lumberjack.v2 v2.0.0/go.mod h1:l0ndWWf7gzL7RNwBG7wST/UCcT4T24xpD6X8LsfU/+k=
 gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
 gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
-mosn.io/api v0.0.0-20210203133328-d332ebe7314e h1:knxZFhJMbZTd49HZwFTMDdHZ/aSWNfXtyx3U1PkHuPY=
-mosn.io/api v0.0.0-20210203133328-d332ebe7314e/go.mod h1:TBv4bz2f2RbpgdohbVAFRFVOoN8YyEUiLH3jAh752Qc=
+mosn.io/api v0.0.0-20210204052134-5b9a826795fd h1:Uc4WO8nG+ksjoUiASmpw4DUWQkb7spchTRwf2lVdd+A=
+mosn.io/api v0.0.0-20210204052134-5b9a826795fd/go.mod h1:TBv4bz2f2RbpgdohbVAFRFVOoN8YyEUiLH3jAh752Qc=
