@@ -1,25 +1,8 @@
-# github.com/davecgh/go-spew v1.1.0
-github.com/davecgh/go-spew/spew
-# github.com/golang/mock v1.5.0
-github.com/golang/mock/gomock
 # github.com/hashicorp/go-syslog v1.0.0
 github.com/hashicorp/go-syslog
-# github.com/pmezard/go-difflib v1.0.0
-github.com/pmezard/go-difflib/difflib
 # github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 github.com/rcrowley/go-metrics
-# github.com/stretchr/testify v1.7.0
-github.com/stretchr/testify/assert
-# github.com/wasmerio/wasmer-go v1.0.3
-github.com/wasmerio/wasmer-go/wasmer
-github.com/wasmerio/wasmer-go/wasmer/packaged/include
-github.com/wasmerio/wasmer-go/wasmer/packaged/lib
-github.com/wasmerio/wasmer-go/wasmer/packaged/lib/darwin-amd64
-github.com/wasmerio/wasmer-go/wasmer/packaged/lib/linux-aarch64
-github.com/wasmerio/wasmer-go/wasmer/packaged/lib/linux-amd64
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
-# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
-gopkg.in/yaml.v3
 # mosn.io/api v0.0.0-20210204052134-5b9a826795fd
 mosn.io/api
