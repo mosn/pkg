@@ -76,12 +76,13 @@ func TestIoBufferCopy(t *testing.T) {
 }
 
 func TestIoBufferGrowCopy(t *testing.T) {
-	bi := newIoBuffer(MaxThreshold + 1)
+	bi := newIoBuffer(MaxThreshold)
 	b := bi.(*ioBuffer)
 	n := randN(1024) + 1
 	b.copy(n)
-	if cap(b.buf) > (MaxThreshold+1)+(MaxThreshold+1)/4+n {
-		t.Errorf("b.copy(%d) should expand to %d, but got %d", n, (MaxThreshold+1)+(MaxThreshold+1)/4+n, cap(b.buf))
+	l := cap(*GetBytes(MaxThreshold+MaxThreshold/4+n))
+	if cap(b.buf) != l {
+		t.Errorf("b.copy(%d) should expand to %d, but got %d", n, l, cap(b.buf))
 	}
 }
 
