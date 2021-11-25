@@ -18,6 +18,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/ugorji/go/codec v1.1.7
+	github.com/valyala/fasthttp v1.31.0
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e
