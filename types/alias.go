@@ -19,20 +19,6 @@ package types
 
 import (
 	"mosn.io/api"
-	"mosn.io/pkg/buffer"
 )
 
-// IoBuffer use alias to keep compatible
-type IoBuffer = buffer.IoBuffer
-
-type ProtocolName = api.ProtocolName
-
 type HeaderMap = api.HeaderMap
-
-type HostInfo = api.HostInfo
-
-type RequestInfo = api.RequestInfo
-
-type Route = api.Route
-
-type VirtualHost = api.VirtualHost
