@@ -19,7 +19,7 @@ package http
 
 import (
 	"github.com/valyala/fasthttp"
-	"mosn.io/pkg/types"
+	"mosn.io/api"
 )
 
 type Code uint32
@@ -145,7 +145,7 @@ func (h RequestHeader) Range(f func(key, value string) bool) {
 	})
 }
 
-func (h RequestHeader) Clone() types.HeaderMap {
+func (h RequestHeader) Clone() api.HeaderMap {
 	copy := &fasthttp.RequestHeader{}
 	h.CopyTo(copy)
 	return RequestHeader{copy}
@@ -214,7 +214,7 @@ func (h ResponseHeader) Range(f func(key, value string) bool) {
 	})
 }
 
-func (h ResponseHeader) Clone() types.HeaderMap {
+func (h ResponseHeader) Clone() api.HeaderMap {
 	copy := &fasthttp.ResponseHeader{}
 	h.CopyTo(copy)
 	return ResponseHeader{copy}
