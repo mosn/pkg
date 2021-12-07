@@ -95,8 +95,7 @@ type RequestHeader struct {
 
 // Get value of key
 func (h RequestHeader) Get(key string) (string, bool) {
-	result := h.Peek(key)
-	if result != nil {
+	if result := h.Peek(key); result != nil {
 		return string(result), true
 	}
 	return "", false
@@ -104,10 +103,12 @@ func (h RequestHeader) Get(key string) (string, bool) {
 
 // Set key-value pair in header map, the previous pair will be replaced if exists
 //
-// Due to the fact that fasthttp's implementation doesn't have correct semantic for Set("key", "") and Peek("key") at the
+// Due to the fact that fasthttp's implementation doesn't have
+//correct semantic for Set("key", "") and Peek("key") at the
 // first time of usage. We need another way for compensate.
 //
-// The problem is caused by the func initHeaderKV, if the original kv.value is nil, ant input value is also nil,
+// The problem is caused by the func initHeaderKV,
+//if the original kv.value is nil, ant input value is also nil,
 // then the final kv.value remains nil.
 //
 // kv.value = append(kv.value[:0], value...)
@@ -146,9 +147,9 @@ func (h RequestHeader) Range(f func(key, value string) bool) {
 }
 
 func (h RequestHeader) Clone() api.HeaderMap {
-	copy := &fasthttp.RequestHeader{}
-	h.CopyTo(copy)
-	return RequestHeader{copy}
+	cpy := &fasthttp.RequestHeader{}
+	h.CopyTo(cpy)
+	return RequestHeader{cpy}
 }
 
 func (h RequestHeader) ByteSize() (size uint64) {
@@ -164,8 +165,7 @@ type ResponseHeader struct {
 
 // Get value of key
 func (h ResponseHeader) Get(key string) (string, bool) {
-	result := h.Peek(key)
-	if result != nil {
+	if result := h.Peek(key); result != nil {
 		return string(result), true
 	}
 	return "", false
@@ -173,7 +173,8 @@ func (h ResponseHeader) Get(key string) (string, bool) {
 
 // Set key-value pair in header map, the previous pair will be replaced if exists
 //
-// Due to the fact that fasthttp's implementation doesn't have correct semantic for Set("key", "") and Peek("key") at the
+// Due to the fact that fasthttp's implementation doesn't have correct semantic for
+//Set("key", "") and Peek("key") at the
 // first time of usage. We need another way for compensate.
 //
 // The problem is caused by the func initHeaderKV, if the original kv.value is nil, ant input value is also nil,
@@ -215,9 +216,9 @@ func (h ResponseHeader) Range(f func(key, value string) bool) {
 }
 
 func (h ResponseHeader) Clone() api.HeaderMap {
-	copy := &fasthttp.ResponseHeader{}
-	h.CopyTo(copy)
-	return ResponseHeader{copy}
+	cpy := &fasthttp.ResponseHeader{}
+	h.CopyTo(cpy)
+	return ResponseHeader{cpy}
 }
 
 func (h ResponseHeader) ByteSize() (size uint64) {
