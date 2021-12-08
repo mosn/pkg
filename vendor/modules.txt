@@ -1,5 +1,7 @@
 # github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
 github.com/StackExchange/wmi
+# github.com/andybalholm/brotli v1.0.2
+github.com/andybalholm/brotli
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dubbogo/getty v1.3.4
@@ -35,7 +37,7 @@ github.com/go-playground/validator/v10
 # github.com/golang/protobuf v1.4.3
 ## explicit
 github.com/golang/protobuf/proto
-# github.com/golang/snappy v0.0.1
+# github.com/golang/snappy v0.0.3
 github.com/golang/snappy
 # github.com/gorilla/websocket v1.4.2
 github.com/gorilla/websocket
@@ -49,6 +51,10 @@ github.com/jinzhu/copier
 ## explicit
 # github.com/k0kubun/pp v3.0.1+incompatible
 github.com/k0kubun/pp
+# github.com/klauspost/compress v1.13.4
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/gzip
+github.com/klauspost/compress/zlib
 # github.com/kr/pretty v0.3.0
 ## explicit
 # github.com/leodido/go-urn v1.2.0
@@ -85,6 +91,13 @@ github.com/stretchr/testify/require
 # github.com/ugorji/go/codec v1.1.7
 ## explicit
 github.com/ugorji/go/codec
+# github.com/valyala/bytebufferpool v1.0.0
+github.com/valyala/bytebufferpool
+# github.com/valyala/fasthttp v1.31.0
+## explicit
+github.com/valyala/fasthttp
+github.com/valyala/fasthttp/fasthttputil
+github.com/valyala/fasthttp/stackless
 # go.uber.org/atomic v1.7.0
 ## explicit
 go.uber.org/atomic
