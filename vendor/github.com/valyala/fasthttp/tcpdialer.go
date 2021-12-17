@@ -15,7 +15,7 @@ import (
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -42,7 +42,7 @@ func Dial(addr string) (net.Conn, error) {
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -67,7 +67,7 @@ func DialTimeout(addr string, timeout time.Duration) (net.Conn, error) {
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -96,7 +96,7 @@ func DialDualStack(addr string) (net.Conn, error) {
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -153,10 +153,8 @@ type TCPDialer struct {
 	// }
 	Resolver Resolver
 
-	// DNSCacheDuration may be used to override the default DNS cache duration (DefaultDNSCacheDuration)
-	DNSCacheDuration time.Duration
-
-	tcpAddrsMap sync.Map
+	tcpAddrsLock sync.Mutex
+	tcpAddrsMap  map[string]*tcpAddrEntry
 
 	concurrencyCh chan struct{}
 
@@ -168,7 +166,7 @@ type TCPDialer struct {
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -195,7 +193,7 @@ func (d *TCPDialer) Dial(addr string) (net.Conn, error) {
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -220,7 +218,7 @@ func (d *TCPDialer) DialTimeout(addr string, timeout time.Duration) (net.Conn, e
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -249,7 +247,7 @@ func (d *TCPDialer) DialDualStack(addr string) (net.Conn, error) {
 // This function has the following additional features comparing to net.Dial:
 //
 //   * It reduces load on DNS resolver by caching resolved TCP addressed
-//     for DNSCacheDuration.
+//     for DefaultDNSCacheDuration.
 //   * It dials all the resolved TCP addresses in round-robin manner until
 //     connection is established. This may be useful if certain addresses
 //     are temporarily unreachable.
@@ -274,11 +272,7 @@ func (d *TCPDialer) dial(addr string, dualStack bool, timeout time.Duration) (ne
 		if d.Concurrency > 0 {
 			d.concurrencyCh = make(chan struct{}, d.Concurrency)
 		}
-
-		if d.DNSCacheDuration == 0 {
-			d.DNSCacheDuration = DefaultDNSCacheDuration
-		}
-
+		d.tcpAddrsMap = make(map[string]*tcpAddrEntry)
 		go d.tcpAddrsClean()
 	})
 
@@ -330,21 +324,46 @@ func (d *TCPDialer) tryDial(network string, addr *net.TCPAddr, deadline time.Tim
 				return nil, ErrDialTimeout
 			}
 		}
-		defer func() { <-concurrencyCh }()
 	}
 
-	dialer := net.Dialer{}
-	if d.LocalAddr != nil {
-		dialer.LocalAddr = d.LocalAddr
+	chv := dialResultChanPool.Get()
+	if chv == nil {
+		chv = make(chan dialResult, 1)
 	}
+	ch := chv.(chan dialResult)
+	go func() {
+		var dr dialResult
+		dr.conn, dr.err = net.DialTCP(network, d.LocalAddr, addr)
+		ch <- dr
+		if concurrencyCh != nil {
+			<-concurrencyCh
+		}
+	}()
 
-	ctx, cancel_ctx := context.WithDeadline(context.Background(), deadline)
-	defer cancel_ctx()
-	conn, err := dialer.DialContext(ctx, network, addr.String())
-	if err != nil && ctx.Err() == context.DeadlineExceeded {
-		return nil, ErrDialTimeout
+	var (
+		conn net.Conn
+		err  error
+	)
+
+	tc := AcquireTimer(timeout)
+	select {
+	case dr := <-ch:
+		conn = dr.conn
+		err = dr.err
+		dialResultChanPool.Put(ch)
+	case <-tc.C:
+		err = ErrDialTimeout
 	}
+	ReleaseTimer(tc)
+
 	return conn, err
+}
+
+var dialResultChanPool sync.Pool
+
+type dialResult struct {
+	conn net.Conn
+	err  error
 }
 
 // ErrDialTimeout is returned when TCP dialing is timed out.
@@ -367,36 +386,39 @@ type tcpAddrEntry struct {
 const DefaultDNSCacheDuration = time.Minute
 
 func (d *TCPDialer) tcpAddrsClean() {
-	expireDuration := 2 * d.DNSCacheDuration
+	expireDuration := 2 * DefaultDNSCacheDuration
 	for {
 		time.Sleep(time.Second)
 		t := time.Now()
-		d.tcpAddrsMap.Range(func(k, v interface{}) bool {
-			if e, ok := v.(*tcpAddrEntry); ok && t.Sub(e.resolveTime) > expireDuration {
-				d.tcpAddrsMap.Delete(k)
-			}
-			return true
-		})
 
+		d.tcpAddrsLock.Lock()
+		for k, e := range d.tcpAddrsMap {
+			if t.Sub(e.resolveTime) > expireDuration {
+				delete(d.tcpAddrsMap, k)
+			}
+		}
+		d.tcpAddrsLock.Unlock()
 	}
 }
 
 func (d *TCPDialer) getTCPAddrs(addr string, dualStack bool) ([]net.TCPAddr, uint32, error) {
-	item, exist := d.tcpAddrsMap.Load(addr)
-	e, ok := item.(*tcpAddrEntry)
-	if exist && ok && e != nil && !e.pending && time.Since(e.resolveTime) > d.DNSCacheDuration {
+	d.tcpAddrsLock.Lock()
+	e := d.tcpAddrsMap[addr]
+	if e != nil && !e.pending && time.Since(e.resolveTime) > DefaultDNSCacheDuration {
 		e.pending = true
 		e = nil
 	}
+	d.tcpAddrsLock.Unlock()
 
 	if e == nil {
 		addrs, err := resolveTCPAddrs(addr, dualStack, d.Resolver)
 		if err != nil {
-			item, exist := d.tcpAddrsMap.Load(addr)
-			e, ok = item.(*tcpAddrEntry)
-			if exist && ok && e != nil && e.pending {
+			d.tcpAddrsLock.Lock()
+			e = d.tcpAddrsMap[addr]
+			if e != nil && e.pending {
 				e.pending = false
 			}
+			d.tcpAddrsLock.Unlock()
 			return nil, 0, err
 		}
 
@@ -404,7 +426,10 @@ func (d *TCPDialer) getTCPAddrs(addr string, dualStack bool) ([]net.TCPAddr, uin
 			addrs:       addrs,
 			resolveTime: time.Now(),
 		}
-		d.tcpAddrsMap.Store(addr, e)
+
+		d.tcpAddrsLock.Lock()
+		d.tcpAddrsMap[addr] = e
+		d.tcpAddrsLock.Unlock()
 	}
 
 	idx := atomic.AddUint32(&e.addrsIdx, 1)

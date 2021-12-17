@@ -1,6 +1,7 @@
 # github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
 github.com/StackExchange/wmi
 # github.com/andybalholm/brotli v1.0.2
+## explicit
 github.com/andybalholm/brotli
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -52,6 +53,7 @@ github.com/jinzhu/copier
 # github.com/k0kubun/pp v3.0.1+incompatible
 github.com/k0kubun/pp
 # github.com/klauspost/compress v1.13.4
+## explicit
 github.com/klauspost/compress/flate
 github.com/klauspost/compress/gzip
 github.com/klauspost/compress/zlib
@@ -93,7 +95,7 @@ github.com/stretchr/testify/require
 github.com/ugorji/go/codec
 # github.com/valyala/bytebufferpool v1.0.0
 github.com/valyala/bytebufferpool
-# github.com/valyala/fasthttp v1.31.0
+# github.com/valyala/fasthttp v1.14.1-0.20200605121233-ac51d598dc54
 ## explicit
 github.com/valyala/fasthttp
 github.com/valyala/fasthttp/fasthttputil
