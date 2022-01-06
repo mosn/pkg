@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	lumberjack "gopkg.in/natefinch/lumberjack.v2"
 )
@@ -36,7 +37,8 @@ var (
 
 	// lumberjacks maps log filenames to the logger
 	// that is being used to keep them rolled/maintained.
-	lumberjacks = make(map[string]*lumberjack.Logger)
+	lumberjacks       = make(map[string]*lumberjack.Logger)
+	lumberjacksLocker sync.RWMutex
 
 	errInvalidRollerParameter = errors.New("invalid roller parameter")
 )
@@ -88,19 +90,34 @@ func (l Roller) GetLogWriter() io.Writer {
 	if err != nil {
 		absPath = l.Filename // oh well, hopefully they're consistent in how they specify the filename
 	}
-	lj, has := lumberjacks[absPath]
-	if !has {
-		lj = &lumberjack.Logger{
-			Filename:   l.Filename,
-			MaxSize:    l.MaxSize,
-			MaxAge:     l.MaxAge,
-			MaxBackups: l.MaxBackups,
-			Compress:   l.Compress,
-			LocalTime:  l.LocalTime,
-		}
-		lumberjacks[absPath] = lj
-	}
 
+	// try get logger
+	lumberjacksLocker.RLock()
+	lj, has := lumberjacks[absPath]
+	lumberjacksLocker.RUnlock()
+	if has {
+		return lj
+	}
+	// get slow logger
+	return l.getSlowLogWriter(absPath)
+}
+
+func (l Roller) getSlowLogWriter(absPath string) io.Writer {
+	lumberjacksLocker.Lock()
+	defer lumberjacksLocker.Unlock()
+	lj, has := lumberjacks[absPath]
+	if has {
+		return lj
+	}
+	lj = &lumberjack.Logger{
+		Filename:   l.Filename,
+		MaxSize:    l.MaxSize,
+		MaxAge:     l.MaxAge,
+		MaxBackups: l.MaxBackups,
+		Compress:   l.Compress,
+		LocalTime:  l.LocalTime,
+	}
+	lumberjacks[absPath] = lj
 	return lj
 }
 
