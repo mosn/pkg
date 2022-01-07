@@ -78,11 +78,9 @@ type Roller struct {
 type RollerHandler func(l *LoggerInfo)
 
 // GetLogWriter returns an io.Writer that writes to a rolling logger.
-// This should be called only from the main goroutine (like during
-// server setup) because this method is not thread-safe; it is careful
-// to create only one log writer per log file, even if the log file
-// is shared by different sites or middlewares. This ensures that
-// rolling is synchronized, since a process (or multiple processes)
+// it is careful to create only one log writer per log file, even if
+// the log file is shared by different sites or middlewares. This ensures
+// that rolling is synchronized, since a process (or multiple processes)
 // should not create more than one roller on the same file at the
 // same time. See issue #1363.
 func (l Roller) GetLogWriter() io.Writer {
