@@ -18,6 +18,7 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -175,4 +176,30 @@ func TestRollerGetLogWriter(t *testing.T) {
 	io1 := roller.GetLogWriter()
 	io2 := roller.GetLogWriter()
 	assert.Equal(t, io1, io2)
+}
+
+func TestGetOrCreate(t *testing.T) {
+	roller := &Roller{
+		MaxAge:     1,
+		MaxSize:    10,
+		MaxBackups: 3,
+	}
+	log, err := GetOrCreateLogger("log/test.log", roller)
+	assert.NoError(t, err)
+
+	log2, err := GetOrCreateLogger("log/test_bak.log", nil)
+	assert.NoError(t, err)
+
+	output := bytes.NewBuffer(nil)
+	for output.Len() < 8*1024*1024 {
+		output.WriteString(time.Now().String())
+	}
+	err = InitGlobalRoller("size=100 age=7 keep=10")
+	assert.Error(t, err)
+
+	for i := 0; i < 100; i++ {
+		log.Write(output.Bytes())
+		log2.Write(output.Bytes())
+	}
+	log.Close()
 }

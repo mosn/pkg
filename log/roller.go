@@ -126,6 +126,9 @@ func InitGlobalRoller(roller string) error {
 	if err != nil {
 		return err
 	}
+	if r.MaxTime == 0 {
+		return errors.New("time is not zero")
+	}
 	defaultRoller = *r
 
 	sendNotify()
