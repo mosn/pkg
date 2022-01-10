@@ -25,6 +25,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseRoller(t *testing.T) {
@@ -165,4 +167,12 @@ func TestRollerHandler(t *testing.T) {
 			t.Fatalf("file %s read data %s, expected %s", fname, string(b), expected)
 		}
 	}
+}
+
+func TestRollerGetLogWriter(t *testing.T) {
+	roller := defaultRoller
+	roller.Filename = "test"
+	io1 := roller.GetLogWriter()
+	io2 := roller.GetLogWriter()
+	assert.Equal(t, io1, io2)
 }
