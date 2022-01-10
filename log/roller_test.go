@@ -184,10 +184,10 @@ func TestGetOrCreate(t *testing.T) {
 		MaxSize:    10,
 		MaxBackups: 3,
 	}
-	log, err := GetOrCreateLogger("log/test.log", roller)
+	log, err := GetOrCreateLogger("/tmp/rollertest/test.log", roller)
 	assert.NoError(t, err)
 
-	log2, err := GetOrCreateLogger("log/test_bak.log", nil)
+	log2, err := GetOrCreateLogger("/tmp/rollertest/test_bak.log", nil)
 	assert.NoError(t, err)
 
 	output := bytes.NewBuffer(nil)
