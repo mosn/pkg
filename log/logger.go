@@ -238,7 +238,7 @@ func (l *Logger) handler() {
 				select {
 				case buf = <-l.writeBufferChan:
 					l.Write(buf.Bytes())
-					buffer.PutIoBuffer(buf)
+					PutLogBuffer(buf)
 				default:
 					l.stop()
 					close(l.stopRotate)
@@ -247,7 +247,7 @@ func (l *Logger) handler() {
 			}
 		case buf = <-l.writeBufferChan:
 			l.Write(buf.Bytes())
-			buffer.PutIoBuffer(buf)
+			PutLogBuffer(buf)
 		}
 	}
 }
@@ -286,7 +286,7 @@ var ErrChanFull = errors.New("channel is full")
 func (l *Logger) Print(buf buffer.IoBuffer, discard bool) error {
 	if l.disable {
 		// free the buf
-		buffer.PutIoBuffer(buf)
+		PutLogBuffer(buf)
 		return nil
 	}
 	select {
@@ -307,7 +307,7 @@ func (l *Logger) Println(args ...interface{}) {
 		return
 	}
 	s := fmt.Sprintln(args...)
-	buf := buffer.GetIoBuffer(len(s))
+	buf := GetLogBuffer(len(s))
 	buf.WriteString(s)
 	if len(s) == 0 || s[len(s)-1] != '\n' {
 		buf.WriteString("\n")
@@ -320,7 +320,7 @@ func (l *Logger) Printf(format string, args ...interface{}) {
 		return
 	}
 	s := fmt.Sprintf(format, args...)
-	buf := buffer.GetIoBuffer(len(s))
+	buf := GetLogBuffer(len(s))
 	buf.WriteString(s)
 	if len(s) == 0 || s[len(s)-1] != '\n' {
 		buf.WriteString("\n")
@@ -331,7 +331,7 @@ func (l *Logger) Printf(format string, args ...interface{}) {
 // Fatal cannot be disabled
 func (l *Logger) Fatalf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
-	buf := buffer.GetIoBuffer(len(s))
+	buf := GetLogBuffer(len(s))
 	buf.WriteString(s)
 	buf.WriteString("\n")
 	buf.WriteTo(l.writer)
@@ -340,7 +340,7 @@ func (l *Logger) Fatalf(format string, args ...interface{}) {
 
 func (l *Logger) Fatal(args ...interface{}) {
 	s := fmt.Sprint(args...)
-	buf := buffer.GetIoBuffer(len(s))
+	buf := GetLogBuffer(len(s))
 	buf.WriteString(s)
 	if len(s) == 0 || s[len(s)-1] != '\n' {
 		buf.WriteString("\n")
@@ -351,7 +351,7 @@ func (l *Logger) Fatal(args ...interface{}) {
 
 func (l *Logger) Fatalln(args ...interface{}) {
 	s := fmt.Sprintln(args...)
-	buf := buffer.GetIoBuffer(len(s))
+	buf := GetLogBuffer(len(s))
 	buf.WriteString(s)
 	if len(s) == 0 || s[len(s)-1] != '\n' {
 		buf.WriteString("\n")

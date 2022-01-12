@@ -34,7 +34,7 @@ func TestLogPrintDiscard(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	buf := buffer.GetIoBuffer(100)
+	buf := GetLogBuffer(100)
 	buf.WriteString("BenchmarkLog BenchmarkLog BenchmarkLog BenchmarkLog BenchmarkLog")
 	l.Close()
 	runtime.Gosched()
@@ -64,10 +64,10 @@ func TestLogPrintnull(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	buf := buffer.GetIoBuffer(0)
+	buf := GetLogBuffer(0)
 	buf.WriteString("testlog")
 	l.Print(buf, false)
-	buf = buffer.GetIoBuffer(0)
+	buf = GetLogBuffer(0)
 	buf.WriteString("")
 	l.Print(buf, false)
 	l.Close()
