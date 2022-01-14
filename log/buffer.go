@@ -17,16 +17,38 @@
 
 package log
 
-import "mosn.io/pkg/buffer"
+import (
+	"mosn.io/api"
+	"mosn.io/pkg/buffer"
+)
 
+// logPool stores buffers for log.
+// we use a separate pool to avoid log data impacting others
 var logPool buffer.IoBufferPool
 
-// GetLogBuffer is a wrapper for logPool, get a IoBuffer for log print
-func GetLogBuffer(size int) buffer.IoBuffer {
-	return logPool.GetIoBuffer(size)
+// GetLogBuffer returns a LogBuffer from logPool
+func GetLogBuffer(size int) LogBuffer {
+	return &logBuffer{
+		IoBuffer: logPool.GetIoBuffer(size),
+	}
 }
 
-// PutLogBuffer is  a wrapper for logPool
-func PutLogBuffer(buf buffer.IoBuffer) error {
-	return logPool.PutIoBuffer(buf)
+// PutLogBuffer puts a LogBuffer back to logPool
+func PutLogBuffer(buf LogBuffer) error {
+	return logPool.PutIoBuffer(buf.buffer())
+}
+
+// LogBuffer is a wrapper for api.IoBuffer that used in log package, to distinguish it from api.IoBuffer
+type LogBuffer interface {
+	api.IoBuffer
+	buffer() api.IoBuffer
+}
+
+// logBuffer is an implementation of LogBuffer
+type logBuffer struct {
+	api.IoBuffer
+}
+
+func (lb *logBuffer) buffer() api.IoBuffer {
+	return lb.IoBuffer
 }

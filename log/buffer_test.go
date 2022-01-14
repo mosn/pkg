@@ -26,9 +26,9 @@ import (
 
 func TestLogBufferPool(t *testing.T) {
 	buf := GetLogBuffer(0)
-	bufaddr := fmt.Sprintf("%p", buf)
+	bufaddr := fmt.Sprintf("%p", buf.buffer())
 	PutLogBuffer(buf)
 	buf2 := GetLogBuffer(0)
-	buf2addr := fmt.Sprintf("%p", buf2)
+	buf2addr := fmt.Sprintf("%p", buf2.buffer())
 	require.Equal(t, bufaddr, buf2addr)
 }

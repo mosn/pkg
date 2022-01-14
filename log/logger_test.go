@@ -91,6 +91,12 @@ func testRotate(l *Logger, interval time.Duration) {
 	doRotateFunc(l, 10*time.Second)
 }
 
+func newLogBufferString(s string) LogBuffer {
+	return &logBuffer{
+		buffer.NewIoBufferString(s),
+	}
+}
+
 func TestLogDefaultRollerTime(t *testing.T) {
 	logName := "/tmp/mosn_bench/printdefaultroller.log"
 	rollerName := logName + "." + time.Now().Format("2006-01-02_15")
@@ -106,10 +112,10 @@ func TestLogDefaultRollerTime(t *testing.T) {
 		t.Fatal(err)
 	}
 	// 1111 will be rotated to rollerName
-	logger.Print(buffer.NewIoBufferString("1111111"), false)
+	logger.Print(newLogBufferString("1111111"), false)
 	time.Sleep(11 * time.Second)
 	// 2222 will be writed in logName
-	logger.Print(buffer.NewIoBufferString("2222222"), false)
+	logger.Print(newLogBufferString("2222222"), false)
 	time.Sleep(1 * time.Second)
 	logger.Close() // stop the rotate
 
@@ -147,12 +153,12 @@ func TestLogDefaultRollerAfterDelete(t *testing.T) {
 	}
 	// remove the log file, the log is output to no where
 	os.Remove(logName)
-	logger.Print(buffer.NewIoBufferString("nowhere"), false)
+	logger.Print(newLogBufferString("nowhere"), false)
 	// wait roller
 	time.Sleep(11 * time.Second)
-	logger.Print(buffer.NewIoBufferString("data"), false)
+	logger.Print(newLogBufferString("data"), false)
 	time.Sleep(100 * time.Millisecond) // wait write flush
-	logger.Print(buffer.NewIoBufferString("output"), false)
+	logger.Print(newLogBufferString("output"), false)
 	logger.Close() // force flush
 	b, err := ioutil.ReadFile(logName)
 	if err != nil {
