@@ -41,12 +41,13 @@ func PutLogBuffer(buf LogBuffer) error {
 // logbuffer is renamed by api.IoBuffer, makes LogBuffer contains an unexported anonymous member
 type logbuffer api.IoBuffer
 
-// LogBuffer is a wrapper for api.IoBuffer that used in log package, to distinguish it from api.IoBuffer
+// LogBuffer is an implementation of api.IoBuffer that used in log package, to distinguish it from api.IoBuffer
 // nolint
 type LogBuffer struct {
 	logbuffer
 }
 
+// nolint
 var _ api.IoBuffer = LogBuffer{}
 
 func (lb LogBuffer) buffer() api.IoBuffer {
