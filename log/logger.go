@@ -125,6 +125,9 @@ func ClearAll() {
 	loggers = sync.Map{}
 }
 
+// defaultBufferSize indicates the amount that can be cached in a logger
+const defaultBufferSize = 500
+
 func GetOrCreateLogger(output string, roller *Roller) (*Logger, error) {
 	if lg, ok := loggers.Load(output); ok {
 		return lg.(*Logger), nil
@@ -144,7 +147,7 @@ func GetOrCreateLogger(output string, roller *Roller) (*Logger, error) {
 	lg := &Logger{
 		output:          output,
 		roller:          roller,
-		writeBufferChan: make(chan LogBuffer, 500),
+		writeBufferChan: make(chan LogBuffer, defaultBufferSize),
 		reopenChan:      make(chan struct{}),
 		closeChan:       make(chan struct{}),
 		stopRotate:      make(chan struct{}),
@@ -219,7 +222,6 @@ func (l *Logger) handler() {
 			go l.handler()
 		}
 	}()
-	var buf LogBuffer
 	for {
 		select {
 		case <-l.reopenChan:
@@ -235,7 +237,7 @@ func (l *Logger) handler() {
 			// a closed logger can not write anymore
 			for {
 				select {
-				case buf = <-l.writeBufferChan:
+				case buf := <-l.writeBufferChan:
 					l.Write(buf.Bytes())
 					PutLogBuffer(buf)
 				default:
@@ -244,7 +246,7 @@ func (l *Logger) handler() {
 					return
 				}
 			}
-		case buf = <-l.writeBufferChan:
+		case buf := <-l.writeBufferChan:
 			l.Write(buf.Bytes())
 			PutLogBuffer(buf)
 		}

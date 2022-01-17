@@ -39,6 +39,7 @@ func PutLogBuffer(buf LogBuffer) error {
 }
 
 // LogBuffer is a wrapper for api.IoBuffer that used in log package, to distinguish it from api.IoBuffer
+// nolint: golint
 type LogBuffer interface {
 	api.IoBuffer
 	buffer() api.IoBuffer
