@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"mosn.io/api"
 )
 
 func TestLogBufferPool(t *testing.T) {
@@ -31,4 +32,80 @@ func TestLogBufferPool(t *testing.T) {
 	buf2 := GetLogBuffer(0)
 	buf2addr := fmt.Sprintf("%p", buf2.buffer())
 	require.Equal(t, bufaddr, buf2addr)
+}
+
+// use an interface to benchmark
+// use struct directly is better than use an interface or a pointer
+type iLogBuf interface {
+	buffer() api.IoBuffer
+}
+
+func getILogBuf() iLogBuf {
+	return GetLogBuffer(0)
+}
+
+func getILogBufByPointer() iLogBuf {
+	return getLogBufferPointer()
+}
+
+func putILogBuf(buf iLogBuf) {
+	logPool.PutIoBuffer(buf.buffer())
+}
+
+func getLogBufferPointer() *LogBuffer {
+	return &LogBuffer{
+		logbuffer: logPool.GetIoBuffer(0),
+	}
+}
+
+func putLogBufferPointer(bp *LogBuffer) {
+	logPool.PutIoBuffer(bp.buffer())
+}
+
+func BenchmarkLogBuffer(b *testing.B) {
+	// use channel write & read to mock log print
+	b.Run("raw iobuffer", func(b *testing.B) {
+		ch := make(chan api.IoBuffer, 1)
+		for i := 0; i < b.N; i++ {
+			ch <- logPool.GetIoBuffer(0)
+			buf := <-ch
+			logPool.PutIoBuffer(buf)
+		}
+	})
+
+	b.Run("struct", func(b *testing.B) {
+		ch := make(chan LogBuffer, 1)
+		for i := 0; i < b.N; i++ {
+			ch <- GetLogBuffer(0)
+			buf := <-ch
+			PutLogBuffer(buf)
+		}
+	})
+
+	b.Run("pointer", func(b *testing.B) {
+		ch := make(chan *LogBuffer, 1)
+		for i := 0; i < b.N; i++ {
+			ch <- getLogBufferPointer()
+			bp := <-ch
+			putLogBufferPointer(bp)
+		}
+	})
+
+	b.Run("struct interface", func(b *testing.B) {
+		ch := make(chan iLogBuf, 1)
+		for i := 0; i < b.N; i++ {
+			ch <- getILogBuf()
+			buf := <-ch
+			putILogBuf(buf)
+		}
+	})
+
+	b.Run("pointer interface", func(b *testing.B) {
+		ch := make(chan iLogBuf, 1)
+		for i := 0; i < b.N; i++ {
+			ch <- getILogBufByPointer()
+			buf := <-ch
+			putILogBuf(buf)
+		}
+	})
 }

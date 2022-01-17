@@ -92,7 +92,7 @@ func testRotate(l *Logger, interval time.Duration) {
 }
 
 func newLogBufferString(s string) LogBuffer {
-	return &logBuffer{
+	return LogBuffer{
 		buffer.NewIoBufferString(s),
 	}
 }

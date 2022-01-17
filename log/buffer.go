@@ -28,8 +28,8 @@ var logPool buffer.IoBufferPool
 
 // GetLogBuffer returns a LogBuffer from logPool
 func GetLogBuffer(size int) LogBuffer {
-	return &logBuffer{
-		IoBuffer: logPool.GetIoBuffer(size),
+	return LogBuffer{
+		logbuffer: logPool.GetIoBuffer(size),
 	}
 }
 
@@ -38,18 +38,17 @@ func PutLogBuffer(buf LogBuffer) error {
 	return logPool.PutIoBuffer(buf.buffer())
 }
 
+// logbuffer is renamed by api.IoBuffer, makes LogBuffer contains an unexported anonymous member
+type logbuffer api.IoBuffer
+
 // LogBuffer is a wrapper for api.IoBuffer that used in log package, to distinguish it from api.IoBuffer
-// nolint: golint
-type LogBuffer interface {
-	api.IoBuffer
-	buffer() api.IoBuffer
+// nolint
+type LogBuffer struct {
+	logbuffer
 }
 
-// logBuffer is an implementation of LogBuffer
-type logBuffer struct {
-	api.IoBuffer
-}
+var _ api.IoBuffer = LogBuffer{}
 
-func (lb *logBuffer) buffer() api.IoBuffer {
-	return lb.IoBuffer
+func (lb LogBuffer) buffer() api.IoBuffer {
+	return lb.logbuffer
 }
