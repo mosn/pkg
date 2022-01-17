@@ -67,45 +67,55 @@ func BenchmarkLogBuffer(b *testing.B) {
 	b.Run("raw iobuffer", func(b *testing.B) {
 		ch := make(chan api.IoBuffer, 1)
 		for i := 0; i < b.N; i++ {
-			ch <- logPool.GetIoBuffer(0)
-			buf := <-ch
-			logPool.PutIoBuffer(buf)
+			func(bf api.IoBuffer) {
+				ch <- bf
+				buf := <-ch
+				logPool.PutIoBuffer(buf)
+			}(logPool.GetIoBuffer(0))
 		}
 	})
 
 	b.Run("struct", func(b *testing.B) {
 		ch := make(chan LogBuffer, 1)
 		for i := 0; i < b.N; i++ {
-			ch <- GetLogBuffer(0)
-			buf := <-ch
-			PutLogBuffer(buf)
+			func(bf LogBuffer) {
+				ch <- bf
+				buf := <-ch
+				PutLogBuffer(buf)
+			}(GetLogBuffer(0))
 		}
 	})
 
 	b.Run("pointer", func(b *testing.B) {
 		ch := make(chan *LogBuffer, 1)
 		for i := 0; i < b.N; i++ {
-			ch <- getLogBufferPointer()
-			bp := <-ch
-			putLogBufferPointer(bp)
+			func(bf *LogBuffer) {
+				ch <- bf
+				bp := <-ch
+				putLogBufferPointer(bp)
+			}(getLogBufferPointer())
 		}
 	})
 
 	b.Run("struct interface", func(b *testing.B) {
 		ch := make(chan iLogBuf, 1)
 		for i := 0; i < b.N; i++ {
-			ch <- getILogBuf()
-			buf := <-ch
-			putILogBuf(buf)
+			func(bf iLogBuf) {
+				ch <- bf
+				buf := <-ch
+				putILogBuf(buf)
+			}(getILogBuf())
 		}
 	})
 
 	b.Run("pointer interface", func(b *testing.B) {
 		ch := make(chan iLogBuf, 1)
 		for i := 0; i < b.N; i++ {
-			ch <- getILogBufByPointer()
-			buf := <-ch
-			putILogBuf(buf)
+			func(bf iLogBuf) {
+				ch <- bf
+				buf := <-ch
+				putILogBuf(buf)
+			}(getILogBufByPointer())
 		}
 	})
 }
