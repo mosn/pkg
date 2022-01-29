@@ -22,6 +22,7 @@ import (
 	"sync"
 )
 
+// SyncList similar with the builtin List container while it is concurrency safe.
 type SyncList struct {
 	list     *list.List
 	curr     *list.Element
@@ -29,18 +30,26 @@ type SyncList struct {
 	visitMux sync.Mutex
 }
 
+// NewSyncList returns an initialized SyncList.
 func NewSyncList() *SyncList {
 	return &SyncList{
-		list: list.New(),
+		list:     list.New(),
+		curr:     nil,
+		mux:      sync.Mutex{},
+		visitMux: sync.Mutex{},
 	}
 }
 
+// PushBack inserts a new element e with value v at the back of list l and returns e.
 func (l *SyncList) PushBack(v interface{}) *list.Element {
 	l.mux.Lock()
 	defer l.mux.Unlock()
 	return l.list.PushBack(v)
 }
 
+// Remove removes e from l if e is an element of list l.
+// It returns the element value e.Value.
+// The element must not be nil.
 func (l *SyncList) Remove(e *list.Element) interface{} {
 	l.mux.Lock()
 	defer l.mux.Unlock()
@@ -76,10 +85,12 @@ func (l *SyncList) VisitSafe(f func(v interface{})) {
 		if curr == nil {
 			break
 		}
+
 		f(curr.Value)
 	}
 }
 
+// Len returns the length of the list l.
 func (l *SyncList) Len() int {
 	l.mux.Lock()
 	defer l.mux.Unlock()
