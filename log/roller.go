@@ -41,6 +41,7 @@ var (
 	lumberjacksLocker sync.Mutex
 
 	errInvalidRollerParameter = errors.New("invalid roller parameter")
+	errTimeZero               = errors.New("time is not zero")
 )
 
 const (
@@ -127,7 +128,7 @@ func InitGlobalRoller(roller string) error {
 		return err
 	}
 	if r.MaxTime == 0 {
-		return errors.New("time is not zero")
+		return errTimeZero
 	}
 	defaultRoller = *r
 
