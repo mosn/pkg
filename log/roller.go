@@ -41,7 +41,7 @@ var (
 	lumberjacksLocker sync.Mutex
 
 	errInvalidRollerParameter = errors.New("invalid roller parameter")
-	errTimeZero               = errors.New("time is not zero")
+	errTimeZero               = errors.New("time should not be zero")
 )
 
 const (
