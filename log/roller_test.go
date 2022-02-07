@@ -77,16 +77,9 @@ func TestParseRoller(t *testing.T) {
 		t.Errorf("ParseRoller should be failed")
 	}
 
-	/*
-		praseArgs = "size=100"
-		err = InitGlobalRoller(praseArgs)
-		if err != nil {
-			t.Errorf("ParseRoller failed")
-		}
-		if defaultRoller.MaxSize != 100 || defaultRoller.Compress != false {
-			t.Errorf("ParseRoller failed")
-		}
-	*/
+	praseArgs = "size=100"
+	err = InitGlobalRoller(praseArgs)
+	assert.Equal(t, err, errTimeZero)
 
 	errorPraseArgs = "time=12"
 	err = InitGlobalRoller(errorPraseArgs)
