@@ -134,3 +134,26 @@ func BenchmarkSyncListVisitSafe(b *testing.B) {
 		})
 	}
 }
+
+func TestSyncListVisitSafeWithPushBack(t *testing.T) {
+	l := NewSyncList()
+	for i := 0; i < 100; i++ {
+		l.PushBack(i)
+	}
+	count := 0
+	l.VisitSafe(func(v interface{}) {
+		n := v.(int)
+		if n%2 == 0 && n > 10 {
+			l.PushBack(n / 2)
+		}
+
+		count++
+	})
+	if count != 171 {
+		t.Errorf("count expected 50 while got: %v", count)
+	}
+	len := l.Len()
+	if len != count {
+		t.Errorf("sync list length expect %v while got: %v", count, len)
+	}
+}
