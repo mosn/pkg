@@ -22,13 +22,14 @@ import (
 	"os"
 )
 
-// LogFunc record buffer's error log, default to std error.
+// logFunc record buffer's error log, default to std error.
 // User can be overwrite it with any log implementation function
 // For example, use mosn.io/pkg/log logger.Errorf overwrite it.
 var logFunc = func(msg string) {
-	fmt.Fprintf(os.Stderr, msg)
+	fmt.Fprintf(os.Stderr, "%s", msg)
 }
 
+// SetLogFunc use f overwrite logFunc.
 func SetLogFunc(f func(msg string)) {
 	logFunc = f
 }
