@@ -15,21 +15,30 @@
  * limitations under the License.
  */
 
-package buffer
+package context
 
-import (
-	"fmt"
-	"os"
+import "context"
+
+// ContextKey type
+type Key int
+
+//  Context key types(built-in)
+const (
+	KeyBufferPoolCtx Key = iota
+	KeyVariables
+	KeyEnd
 )
 
-// logFunc record buffer's error log, default to std error.
-// User can be overwrite it with any log implementation function
-// For example, use mosn.io/pkg/log logger.Errorf overwrite it.
-var logFunc = func(msg string) {
-	fmt.Fprintf(os.Stderr, "%s\n", msg)
+type valueCtx struct {
+	context.Context
+
+	builtin [KeyEnd]interface{}
 }
 
-// SetLogFunc use f overwrite logFunc.
-func SetLogFunc(f func(msg string)) {
-	logFunc = f
+func (c *valueCtx) Value(key interface{}) interface{} {
+	if contextKey, ok := key.(Key); ok {
+		return c.builtin[contextKey]
+	}
+
+	return c.Context.Value(key)
 }

@@ -14,22 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package buffer
 
 import (
-	"fmt"
-	"os"
+	"context"
+	"testing"
 )
 
-// logFunc record buffer's error log, default to std error.
-// User can be overwrite it with any log implementation function
-// For example, use mosn.io/pkg/log logger.Errorf overwrite it.
-var logFunc = func(msg string) {
-	fmt.Fprintf(os.Stderr, "%s\n", msg)
-}
-
-// SetLogFunc use f overwrite logFunc.
-func SetLogFunc(f func(msg string)) {
-	logFunc = f
+func Test_ByteBuffer(t *testing.T) {
+	ctx := NewBufferPoolContext(context.Background())
+	b := GetBytesByContext(ctx, 1000)
+	if len(*b) != 1000 {
+		t.Errorf("bytes len should %d", 1000)
+	}
+	if cap(*b) != 1024 {
+		t.Errorf("bytes cap should %d", 1024)
+	}
+	bv := PoolContext(ctx)
+	bv.Give()
 }
