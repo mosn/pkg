@@ -400,3 +400,60 @@ WAIT:
 	t.Logf("received %d reopens", reopens)
 	close(l.stopRotate)
 }
+
+func TestLogRollerTimeAndCompress(t *testing.T) {
+	logName := "/tmp/mosn_bench/defaultCompress.log"
+	rollerName := logName + "." + time.Now().Format("2006-01-02_15")
+	os.Remove(logName)
+	os.Remove(rollerName)
+	// replace rotate interval for test
+	doRotate = testRotateByKeep
+	defer func() {
+		doRotate = testRotateByKeep
+	}()
+	//default MaxBackups=10
+	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 1, Handler: rollerHandler, Compress: true, MaxBackups: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 1111 will be rotated to rollerName
+	logger.Print(newLogBufferString("1111111"), false)
+	time.Sleep(2 * time.Second)
+	// 2222 will be writed in logName
+	logger.Print(newLogBufferString("2222222"), false)
+	time.Sleep(1 * time.Second)
+	logger.Close() // stop the rotate
+
+	if !exists(rollerName + compressSuffix) {
+		t.Fatalf("compress is failed")
+	}
+}
+
+func testRotateByKeep(l *Logger, interval time.Duration) {
+	doRotateFunc(l, 1*time.Second)
+}
+func TestLogRollerTimeAndKeep(t *testing.T) {
+	logName := "/tmp/mosn_bench/defaultKeep.log"
+	rollerName := logName + "." + time.Now().Format("2006-01-02_15")
+	os.Remove(logName)
+	os.Remove(rollerName)
+	// replace rotate interval for test
+	doRotate = testRotateByKeep
+	defer func() {
+		doRotate = testRotateByKeep
+	}()
+	logger, err := GetOrCreateLogger(logName, &Roller{MaxTime: 2, Handler: rollerHandler, MaxBackups: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	logger.Print(newLogBufferString("1111111"), false)
+	time.Sleep(2 * time.Second)
+	logger.Print(newLogBufferString("2222222"), false)
+	time.Sleep(2 * time.Second)
+	logger.Print(newLogBufferString("3333333"), false)
+	time.Sleep(1 * time.Second)
+	logger.Close() // stop the rotate
+	if exists(rollerName) {
+		t.Fatalf(" %s is exists", rollerName)
+	}
+}
