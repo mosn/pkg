@@ -80,7 +80,7 @@ type Logger struct {
 }
 
 type LoggerInfo struct {
-	LogRoller  Roller
+	LogRoller  *Roller
 	FileName   string
 	CreateTime time.Time
 }
@@ -417,7 +417,7 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 		case <-timer.C:
 			now := time.Now()
 			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
-			info.LogRoller = *l.roller
+			info.LogRoller = l.roller
 			l.roller.Handler(&info)
 			l.create = now
 			go l.Reopen()
@@ -615,7 +615,7 @@ func (l *Logger) oldLogFiles() ([]LoggerInfo, error) {
 		if !strings.HasPrefix(f.Name(), filepath.Base(l.output)+".") {
 			continue
 		}
-		logFiles = append(logFiles, LoggerInfo{*l.roller, f.Name(), f.ModTime()})
+		logFiles = append(logFiles, LoggerInfo{l.roller, f.Name(), f.ModTime()})
 	}
 	sort.Sort(byFormatTime(logFiles))
 
