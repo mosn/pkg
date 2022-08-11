@@ -135,7 +135,7 @@ func TestRollerHandler(t *testing.T) {
 		return ioutil.WriteFile(name, data, 0644)
 	}
 	linfo := &LoggerInfo{
-		LogRoller: Roller{
+		LogRoller: &Roller{
 			MaxTime:    defaultRotateTime,
 			MaxBackups: 10,
 		},
