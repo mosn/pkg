@@ -594,7 +594,7 @@ func (l *Logger) findCompressFile(fileName string) (string, error) {
 }
 
 func (l *Logger) mill() {
-	if l.roller.MaxBackups != 0 || l.roller.MaxAge != 0 || l.roller.Compress {
+	if l.roller.MaxBackups != defaultRotateKeep || l.roller.MaxAge != defaultRotateAge || l.roller.Compress {
 		_ = l.millRunOnce()
 	}
 }
