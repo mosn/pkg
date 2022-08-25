@@ -252,7 +252,6 @@ func (l *Logger) handler() {
 				}
 			}
 		case buf := <-l.writeBufferChan:
-
 			l.Write(buf.Bytes())
 			PutLogBuffer(buf)
 		}
@@ -508,7 +507,7 @@ func (l *Logger) millRunOnce() error {
 			return err
 		}
 		go func(fnCompress, fileName string, wg *sync.WaitGroup) {
-			wg.Done()
+			defer wg.Done()
 			err = l.compressLogFile(fileName, fnCompress)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "logger %s compressLogFile , error: %v", l.output, err)

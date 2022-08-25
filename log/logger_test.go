@@ -432,6 +432,7 @@ func TestLogRollerTimeAndCompress(t *testing.T) {
 func testRotateByKeep(l *Logger, interval time.Duration) {
 	doRotateFunc(l, 1*time.Second)
 }
+
 func TestLogRollerTimeAndKeep(t *testing.T) {
 	logName := "/tmp/mosn_bench/defaultKeep.log"
 	rollerName := logName + "." + time.Now().Format("2006-01-02_15")
