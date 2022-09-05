@@ -17,8 +17,6 @@
 
 package variable
 
-import "context"
-
 // some built-in variable names for common case
 const (
 	downStreamProtocol    = "bultin_variable_downstream_protocol"
@@ -48,20 +46,4 @@ func init() {
 	for _, v := range builtinVariables {
 		Register(v)
 	}
-}
-
-// ContextSet is a function wrapper likes context usage
-func ContextSet(ctx context.Context, v Variable, value interface{}) context.Context {
-	_ = SetVariable(ctx, v, value)
-	return ctx
-}
-
-// ContextGet is a functuon wrapper likes context usage
-func ContextGet(ctx context.Context, v Variable) interface{} {
-	value, err := GetVariable(ctx, v)
-	if err != nil {
-		return nil
-	}
-	return value
-
 }
