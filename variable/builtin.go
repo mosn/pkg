@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+// nolint
 package variable
 
 // some built-in variable names for common case
@@ -28,20 +29,20 @@ const (
 
 // some built-in variables for common case
 var (
-	VarDownStreamProtocol    = NewVariable(downStreamProtocol, nil, nil, DefaultSetter, 0)
-	VarUpstreamProtocol      = NewVariable(upstreamProtocol, nil, nil, DefaultSetter, 0)
-	VarDownStreamReqHeaders  = NewVariable(downStreamReqHeaders, nil, nil, DefaultSetter, 0)
-	VarDownStreamRespHeaders = NewVariable(downStreamRespHeaders, nil, nil, DefaultSetter, 0)
-	VarTraceSpan             = NewVariable(traceSpan, nil, nil, DefaultSetter, 0)
+	VariableDownStreamProtocol    = NewVariable(downStreamProtocol, nil, nil, DefaultSetter, 0)
+	VariableUpstreamProtocol      = NewVariable(upstreamProtocol, nil, nil, DefaultSetter, 0)
+	VariableDownStreamReqHeaders  = NewVariable(downStreamReqHeaders, nil, nil, DefaultSetter, 0)
+	VariableDownStreamRespHeaders = NewVariable(downStreamRespHeaders, nil, nil, DefaultSetter, 0)
+	VariableTraceSpan             = NewVariable(traceSpan, nil, nil, DefaultSetter, 0)
 )
 
 func init() {
 	builtinVariables := []Variable{
-		VarDownStreamProtocol,
-		VarUpstreamProtocol,
-		VarDownStreamReqHeaders,
-		VarDownStreamRespHeaders,
-		VarTraceSpan,
+		VariableDownStreamProtocol,
+		VariableUpstreamProtocol,
+		VariableDownStreamReqHeaders,
+		VariableDownStreamRespHeaders,
+		VariableTraceSpan,
 	}
 	for _, v := range builtinVariables {
 		Register(v)
