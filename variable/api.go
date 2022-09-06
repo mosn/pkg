@@ -28,8 +28,8 @@ import (
 )
 
 // GetString return the value of string-typed variable
-func GetString(ctx context.Context, name string) (string, error) {
-	v, err := Get(ctx, name)
+func GetString(ctx context.Context, v interface{}) (string, error) {
+	v, err := Get(ctx, v)
 	if err != nil {
 		return "", err
 	}
@@ -38,20 +38,32 @@ func GetString(ctx context.Context, name string) (string, error) {
 		return s, nil
 	}
 
-	return "", errors.New(errVariableNotString + name)
+	return "", errors.New(errVariableNotString)
 }
 
 // SetString set the value of string-typed variable
-func SetString(ctx context.Context, name, value string) error {
+func SetString(ctx context.Context, v interface{}, value string) error {
 	if ctx == nil {
 		return errors.New(errInvalidContext)
 	}
 
-	return Set(ctx, name, value)
+	return Set(ctx, v, value)
 }
 
-// GetVariable returns the value of variable in the context
-func GetVariable(ctx context.Context, variable Variable) (interface{}, error) {
+// Get the value of variable.
+func Get(ctx context.Context, i interface{}) (interface{}, error) {
+	switch v := i.(type) {
+	case string:
+		return getByName(ctx, v)
+	case Variable:
+		return getByVariable(ctx, v)
+	default:
+		return nil, invalidVariableIndex
+	}
+}
+
+// getByVariable returns the value of variable in the context
+func getByVariable(ctx context.Context, variable Variable) (interface{}, error) {
 	// 1.1 check indexed value
 	if indexer, ok := variable.(Indexer); ok {
 		return getFlushedValue(ctx, indexer.GetIndex())
@@ -64,11 +76,11 @@ func GetVariable(ctx context.Context, variable Variable) (interface{}, error) {
 	return getter.Get(ctx, nil, variable.Data())
 }
 
-// Get the value of variable by name
-func Get(ctx context.Context, name string) (interface{}, error) {
+// get the value of variable by name
+func getByName(ctx context.Context, name string) (interface{}, error) {
 	// 1. find built-in variables
 	if variable, ok := variables[name]; ok {
-		return GetVariable(ctx, variable)
+		return getByVariable(ctx, variable)
 	}
 
 	// 2. find prefix variables
@@ -90,8 +102,20 @@ func Get(ctx context.Context, name string) (interface{}, error) {
 	return "", errors.New(errUndefinedVariable + name)
 }
 
+// Set the value of variable.
+func Set(ctx context.Context, i interface{}, value interface{}) error {
+	switch v := i.(type) {
+	case string:
+		return setByName(ctx, v, value)
+	case Variable:
+		return setByVariable(ctx, v, value)
+	default:
+		return invalidVariableIndex
+	}
+}
+
 // SetVariable sets value into variable in context
-func SetVariable(ctx context.Context, variable Variable, value interface{}) error {
+func setByVariable(ctx context.Context, variable Variable, value interface{}) error {
 	// 1.1 check indexed value
 	if indexer, ok := variable.(Indexer); ok {
 		return setFlushedValue(ctx, indexer.GetIndex(), value)
@@ -100,14 +124,14 @@ func SetVariable(ctx context.Context, variable Variable, value interface{}) erro
 }
 
 // Set the value of variable by name
-func Set(ctx context.Context, name string, value interface{}) error {
+func setByName(ctx context.Context, name string, value interface{}) error {
 	if ctx == nil {
 		return errors.New(errInvalidContext)
 	}
 
 	// find built-in & indexed variables, prefix and non-indexed are not supported
 	if variable, ok := variables[name]; ok {
-		return SetVariable(ctx, variable, value)
+		return setByVariable(ctx, variable, value)
 	}
 
 	return errors.New(errSupportIndexedOnly + ": set variable value")

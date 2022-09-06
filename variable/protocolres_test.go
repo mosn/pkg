@@ -52,12 +52,12 @@ func TestGetProtocolResource(t *testing.T) {
 	RegisterProtocolResource(HTTP1, api.PATH, request_path)
 
 	ctx := NewVariableContext(context.Background())
-	_ = SetVariable(ctx, VariableDownStreamProtocol, HTTP1)
+	_ = Set(ctx, VariableDownStreamProtocol, HTTP1)
 	vv, err := GetProtocolResource(ctx, api.PATH)
 	require.Nil(t, err)
 	require.Equal(t, m[httpKey], vv)
 
-	_ = SetVariable(ctx, VariableDownStreamProtocol, Dubbo)
+	_ = Set(ctx, VariableDownStreamProtocol, Dubbo)
 	vv, err = GetProtocolResource(ctx, api.PATH)
 	require.EqualError(t, err, errUnregisterProtocolResource+string(Dubbo))
 }
@@ -72,7 +72,7 @@ func BenchmarkGetProtocolResource(b *testing.B) {
 	}
 }
 
-func BenchmarkGetVariableValue(b *testing.B) {
+func BenchmarkGetValue(b *testing.B) {
 
 	ctx := prepareProtocolResource()
 	for i := 0; i < b.N; i++ {
@@ -96,6 +96,6 @@ func prepareProtocolResource() context.Context {
 	RegisterProtocolResource(HTTP1, api.PATH, name)
 
 	ctx := NewVariableContext(context.Background())
-	_ = SetVariable(ctx, VariableDownStreamProtocol, HTTP1)
+	_ = Set(ctx, VariableDownStreamProtocol, HTTP1)
 	return ctx
 }

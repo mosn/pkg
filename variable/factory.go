@@ -43,8 +43,9 @@ var (
 	errSupportIndexedOnly   = "this operation only support indexed variable"
 	errGetterNotFound       = "getter function undefined, variable name: "
 	errSetterNotFound       = "setter function undefined, variable name: "
-	errVariableNotString    = "variable type is not string, name: "
+	errVariableNotString    = "variable type is not string"
 	errValueNotString       = "set string variable with non-string type"
+	invalidVariableIndex    = errors.New("get variable support name index or variable directly")
 )
 
 // ResetVariableForTest is a test function for reset the variables.

@@ -54,7 +54,7 @@ func convert(p api.ProtocolName, name api.ProtocolResourceName) string {
 
 // GetProtocolResource get URI,PATH,ARG var depends on ProtocolResourceName
 func GetProtocolResource(ctx context.Context, name api.ProtocolResourceName, data ...interface{}) (string, error) {
-	pv, err := GetVariable(ctx, VariableDownStreamProtocol)
+	pv, err := Get(ctx, VariableDownStreamProtocol)
 	if err != nil {
 		return "", err
 	}

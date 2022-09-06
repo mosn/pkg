@@ -40,7 +40,7 @@ func init() {
 }
 
 func _getIntVariable(ctx context.Context, v Variable) (int, bool) {
-	i, err := GetVariable(ctx, v)
+	i, err := Get(ctx, v)
 	if err != nil {
 		return 0, false
 	}
@@ -55,10 +55,10 @@ func _getIntVariable(ctx context.Context, v Variable) (int, bool) {
 func TestNewVariableContext(t *testing.T) {
 
 	connCtx := NewVariableContext(context.Background())
-	SetVariable(connCtx, testVarConnectionID, 1)
+	Set(connCtx, testVarConnectionID, 1)
 	// stream context is inherit from connection context
 	streamCtx := NewVariableContext(connCtx)
-	SetVariable(streamCtx, testVarStreamID, 1)
+	Set(streamCtx, testVarStreamID, 1)
 	// verify
 
 	// connection context should not get stream id
@@ -78,7 +78,7 @@ func TestNewVariableContext(t *testing.T) {
 
 	// if stream context modify var in connection
 	// should not take effect on connection context
-	SetVariable(streamCtx, testVarConnectionID, 2)
+	Set(streamCtx, testVarConnectionID, 2)
 	cid, ok = _getIntVariable(streamCtx, testVarConnectionID)
 	require.True(t, ok)
 	require.Equal(t, 2, cid)
@@ -101,23 +101,23 @@ func TestNewVariableContext(t *testing.T) {
 func TestGetterVariable(t *testing.T) {
 	ctx := context.WithValue(context.Background(), "test", "value")
 
-	vi, err := GetVariable(ctx, testVarGetter)
+	vi, err := Get(ctx, testVarGetter)
 	require.Nil(t, err)
 	require.Equal(t, "value", vi.(string))
 
 	newCtx := NewVariableContext(ctx)
 
-	vi, err = GetVariable(newCtx, testVarGetter)
+	vi, err = Get(newCtx, testVarGetter)
 	require.Nil(t, err)
 	require.Equal(t, "value", vi.(string))
 
 	newCtx = context.WithValue(newCtx, "test", "new value")
 
-	vi, err = GetVariable(newCtx, testVarGetter)
+	vi, err = Get(newCtx, testVarGetter)
 	require.Nil(t, err)
 	require.Equal(t, "new value", vi.(string))
 
-	vi, err = GetVariable(ctx, testVarGetter)
+	vi, err = Get(ctx, testVarGetter)
 	require.Nil(t, err)
 	require.Equal(t, "value", vi.(string))
 
