@@ -15,21 +15,34 @@
  * limitations under the License.
  */
 
+//nolint
 package buffer
 
 import (
-	"fmt"
-	"os"
+	"context"
 )
 
-// logFunc record buffer's error log, default to std error.
-// User can be overwrite it with any log implementation function
-// For example, use mosn.io/pkg/log logger.Errorf overwrite it.
-var logFunc = func(msg string) {
-	fmt.Fprintf(os.Stderr, "%s\n", msg)
+var ins = ByteBufferCtx{}
+
+func init() {
+	RegisterBuffer(&ins)
 }
 
-// SetLogFunc use f overwrite logFunc.
-func SetLogFunc(f func(msg string)) {
-	logFunc = f
+type ByteBufferCtx struct {
+	TempBufferCtx
+}
+
+func (ctx ByteBufferCtx) New() interface{} {
+	return NewByteBufferPoolContainer()
+}
+
+func (ctx ByteBufferCtx) Reset(i interface{}) {
+	p := i.(*ByteBufferPoolContainer)
+	p.Reset()
+}
+
+// GetBytesByContext returns []byte from byteBufferPool by context
+func GetBytesByContext(context context.Context, size int) *[]byte {
+	p := PoolContext(context).Find(&ins, nil).(*ByteBufferPoolContainer)
+	return p.Take(size)
 }
