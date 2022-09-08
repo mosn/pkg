@@ -52,16 +52,19 @@ func convert(p api.ProtocolName, name api.ProtocolResourceName) string {
 	return string(p) + string(name)
 }
 
+// GetProtocol returns the protocol name in the context.
+// This allows user defines the way to get protocol.
+// If the GetProtocol is undefined, the GetProtocolResource always returns an error.
+var GetProtocol func(ctx context.Context) (api.ProtocolName, error)
+
 // GetProtocolResource get URI,PATH,ARG var depends on ProtocolResourceName
 func GetProtocolResource(ctx context.Context, name api.ProtocolResourceName, data ...interface{}) (string, error) {
-	pv, err := Get(ctx, VariableDownStreamProtocol)
+	if GetProtocol == nil {
+		return "", errNoGetProtocol
+	}
+	p, err := GetProtocol(ctx)
 	if err != nil {
 		return "", err
-	}
-	p, ok := pv.(api.ProtocolName)
-	if !ok {
-		//nolint
-		return "", errors.New("get ContextKeyDownStreamProtocol failed.")
 	}
 	if v, ok := protocolVar[convert(p, name)]; ok {
 		// apend data behind if data exists

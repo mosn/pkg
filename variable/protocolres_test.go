@@ -19,6 +19,8 @@ package variable
 
 import (
 	"context"
+	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -26,9 +28,26 @@ import (
 )
 
 const (
-	HTTP1 api.ProtocolName = "Http1"
-	Dubbo api.ProtocolName = "Dubbo"
+	HTTP1        api.ProtocolName = "Http1"
+	Dubbo        api.ProtocolName = "Dubbo"
+	ProtocolName                  = "protocol"
 )
+
+func TestMain(m *testing.M) {
+	GetProtocol = func(ctx context.Context) (api.ProtocolName, error) {
+		v := ctx.Value(ProtocolName)
+		if proto, ok := v.(api.ProtocolName); ok {
+			return proto, nil
+		}
+		return api.ProtocolName(""), errors.New("no protocol found")
+	}
+	os.Exit(m.Run())
+}
+
+func newVariableContextWithProtocol(proto api.ProtocolName) context.Context {
+	ctx := context.WithValue(context.Background(), ProtocolName, proto)
+	return NewVariableContext(ctx)
+}
 
 func TestGetProtocolResource(t *testing.T) {
 	request_path := "request_path"
@@ -51,13 +70,12 @@ func TestGetProtocolResource(t *testing.T) {
 	// register HTTP protocol resource var
 	RegisterProtocolResource(HTTP1, api.PATH, request_path)
 
-	ctx := NewVariableContext(context.Background())
-	_ = Set(ctx, VariableDownStreamProtocol, HTTP1)
+	ctx := newVariableContextWithProtocol(HTTP1)
 	vv, err := GetProtocolResource(ctx, api.PATH)
 	require.Nil(t, err)
 	require.Equal(t, m[httpKey], vv)
 
-	_ = Set(ctx, VariableDownStreamProtocol, Dubbo)
+	ctx = newVariableContextWithProtocol(Dubbo)
 	vv, err = GetProtocolResource(ctx, api.PATH)
 	require.EqualError(t, err, errUnregisterProtocolResource+string(Dubbo))
 }
@@ -95,7 +113,6 @@ func prepareProtocolResource() context.Context {
 	// register HTTP protocol resource var
 	RegisterProtocolResource(HTTP1, api.PATH, name)
 
-	ctx := NewVariableContext(context.Background())
-	_ = Set(ctx, VariableDownStreamProtocol, HTTP1)
+	ctx := newVariableContextWithProtocol(HTTP1)
 	return ctx
 }

@@ -25,6 +25,7 @@ import (
 	"sync"
 
 	mosnctx "mosn.io/pkg/internal/context"
+	"mosn.io/pkg/log"
 )
 
 var (
@@ -46,6 +47,7 @@ var (
 	errVariableNotString    = "variable type is not string"
 	errValueNotString       = "set string variable with non-string type"
 	invalidVariableIndex    = errors.New("get variable support name index or variable directly")
+	errNoGetProtocol        = errors.New("no way to get protocol, get protocol resource variable failed")
 )
 
 // ResetVariableForTest is a test function for reset the variables.
@@ -98,6 +100,7 @@ func Register(variable Variable) error {
 
 	// check conflict
 	if _, ok := variables[name]; ok {
+		log.DefaultLogger.Errorf("[variable] duplicate register variable: %s", name)
 		return errors.New(errVariableDuplicated + name)
 	}
 
