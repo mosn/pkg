@@ -42,8 +42,8 @@ var (
 	errInvalidContext       = "invalid context"
 	errNoVariablesInContext = "no variables found in context"
 	errSupportIndexedOnly   = "this operation only support indexed variable"
-	errGetterNotFound       = "getter function undefined, variable name: "
 	errSetterNotFound       = "setter function undefined, variable name: "
+	errValueNotFound        = "variable value not found, variable name: "
 	errVariableNotString    = "variable type is not string"
 	errValueNotString       = "set string variable with non-string type"
 	invalidVariableIndex    = errors.New("get variable support name index or variable directly")

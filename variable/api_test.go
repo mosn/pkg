@@ -76,27 +76,6 @@ func TestGetVariableValue_normal(t *testing.T) {
 		t.Error("Check unknown variable failed")
 	}
 
-	//test variable noCacheable
-	name = "nocache"
-	value = "nocache Value"
-	Register(NewStringVariable(name, nil, func(ctx context.Context, variableValue *IndexedValue, data interface{}) (s string, err error) {
-		return value, nil
-	}, DefaultStringSetter, MOSN_VAR_FLAG_NOCACHEABLE))
-	ctx = NewVariableContext(context.Background())
-	err = SetString(ctx, name, value)
-	if err != nil {
-		t.Error(err)
-	}
-
-	vv, err = GetString(ctx, name)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if vv != value {
-		t.Errorf("get/set nocache variable value not equal, expected: %s, acutal: %s", value, vv)
-	}
-
 }
 
 func TestSetVariableValue_normal(t *testing.T) {
@@ -186,7 +165,37 @@ func TestVarNotGetterHint(t *testing.T) {
 	ctx = NewVariableContext(ctx)
 
 	_, err := Get(ctx, name)
-	assert.Equal(t, err.Error(), errGetterNotFound+name)
+	assert.Equal(t, err.Error(), errValueNotFound+name)
+
+	_, err2 := Get(ctx, name)
+	assert.Equal(t, err2.Error(), errValueNotFound+name)
+}
+
+func TestVariableGetSetCached(t *testing.T) {
+	name := "cache getter"
+	cacheValue := "cached"
+	getterCall := 0
+	Register(NewStringVariable(name, nil, func(ctx context.Context, variableValue *IndexedValue, data interface{}) (s string, err error) {
+		getterCall++
+		return cacheValue, nil
+	}, DefaultStringSetter, 0))
+	ctx := NewVariableContext(context.Background())
+	value, err := GetString(ctx, name)
+	assert.Nil(t, err)
+	assert.Equal(t, cacheValue, value)
+	assert.Equal(t, 1, getterCall)
+	// get from cache
+	value, err = GetString(ctx, name)
+	assert.Nil(t, err)
+	assert.Equal(t, cacheValue, value)
+	assert.Equal(t, 1, getterCall)
+	// set will overwrite cache
+	SetString(ctx, name, "overwrite")
+	value, err = GetString(ctx, name)
+	assert.Nil(t, err)
+	assert.Equal(t, "overwrite", value)
+	assert.Equal(t, 1, getterCall)
+
 }
 
 func BenchmarkGetVariableValue2(b *testing.B) {
