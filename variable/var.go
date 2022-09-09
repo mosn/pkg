@@ -90,11 +90,6 @@ func (bv *BasicVariable) Data() interface{} {
 	return bv.data
 }
 
-// Flags returns variable's cache flag
-func (bv *BasicVariable) Flags() uint32 {
-	return bv.flags
-}
-
 // Getter is the variable's value get function if the variable contains it
 func (bv *BasicVariable) Getter() Getter {
 	return bv.getter
@@ -158,5 +153,5 @@ func (g *getterImpl) Get(ctx context.Context, value *IndexedValue, data interfac
 		return g.getter(ctx, value, data)
 	}
 
-	return nil, errors.New(errGetterNotFound + g.name)
+	return nil, errors.New(errValueNotFound + g.name)
 }
