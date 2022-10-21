@@ -12,11 +12,9 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.2.0
+        uses: reviewdog/action-golangci-lint@v2
         with:
-          version: v1.50.0
-          skip-cache: true
-          args: "--enable-all --timeout=10m --exclude-use-default=false --tests=false --disable=gochecknoinits,gochecknoglobals,exhaustive,nakedret,wrapcheck"
+          golangci_lint_flags: "--enable-all --timeout=10m --exclude-use-default=false --tests=false --disable=gochecknoinits,gochecknoglobals,exhaustive,nakedret,wrapcheck"
 
   test:
     name: test
