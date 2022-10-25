@@ -85,8 +85,6 @@ const (
 	LoopDetected                  = 508
 	NotExtended                   = 510
 	NetworkAuthenticationRequired = 511
-
-	PlaceHolder = "-"
 )
 
 type RequestHeader struct {
@@ -102,23 +100,7 @@ func (h RequestHeader) Get(key string) (string, bool) {
 }
 
 // Set key-value pair in header map, the previous pair will be replaced if exists
-//
-// Due to the fact that fasthttp's implementation doesn't have
-//correct semantic for Set("key", "") and Peek("key") at the
-// first time of usage. We need another way for compensate.
-//
-// The problem is caused by the func initHeaderKV,
-//if the original kv.value is nil, ant input value is also nil,
-// then the final kv.value remains nil.
-//
-// kv.value = append(kv.value[:0], value...)
-//
-// fasthttp do has the kv entry, but kv.value is nil, so Peek("key") return nil. But we want "" instead.
 func (h RequestHeader) Set(key string, value string) {
-	if value == "" {
-		// Set a placeholder first, so that RequestHeader can get this value after setting an empty value.
-		h.RequestHeader.Set(key, PlaceHolder)
-	}
 	h.RequestHeader.Set(key, value)
 }
 
@@ -172,22 +154,10 @@ func (h ResponseHeader) Get(key string) (string, bool) {
 }
 
 // Set key-value pair in header map, the previous pair will be replaced if exists
-//
-// Due to the fact that fasthttp's implementation doesn't have correct semantic for
-//Set("key", "") and Peek("key") at the
-// first time of usage. We need another way for compensate.
-//
-// The problem is caused by the func initHeaderKV, if the original kv.value is nil, ant input value is also nil,
-// then the final kv.value remains nil.
-//
-// kv.value = append(kv.value[:0], value...)
-//
-// fasthttp do has the kv entry, but kv.value is nil, so Peek("key") return nil. But we want "" instead.
 func (h ResponseHeader) Set(key string, value string) {
-	if value == "" {
-		// Set a placeholder first, so that ResponseHeader can get this value after setting an empty value.
-		h.ResponseHeader.Set(key, PlaceHolder)
-	}
+	// pre-emptively delete because fasthttp doesn't handle overwriting
+	// set-cookie, yet
+	h.ResponseHeader.Del(key)
 	h.ResponseHeader.Set(key, value)
 }
 
