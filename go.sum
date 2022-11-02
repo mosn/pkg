@@ -726,8 +726,8 @@ honnef.co/go/tools v0.0.0-20190418001031-e561f6794a2a/go.mod h1:rf3lG4BRIbNafJWh
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.1-2019.2.3 h1:3JgtbtFHMiCmsznwGVTUWbgGov+pVqnlf1dEJTNAXeM=
 honnef.co/go/tools v0.0.1-2019.2.3/go.mod h1:a3bituU0lyd329TUQxRnasdCoJDkEUEAqEt0JzvZhAg=
-mosn.io/api v1.1.1-0.20221020052648-537dd3d52055 h1:wdo64RnywZmlk5gmTV3CO32Loi6noD1JuCx5V/0ezpQ=
-mosn.io/api v1.1.1-0.20221020052648-537dd3d52055/go.mod h1:q7UVkK9Wzn49Ar0U3UBiO2+Z2mM/4OTp61oSCtcgKDc=
+mosn.io/api v1.2.3 h1:H6NkiqgXnq6GsbAg2rmd9i3Fz5Husw2Vme3LBRHUovU=
+mosn.io/api v1.2.3/go.mod h1:mJX2oRJkrXjLN6hY1Wwrlxj0F+RqEPOMhbf2WhZO+VY=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
