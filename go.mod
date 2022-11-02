@@ -21,7 +21,7 @@ require (
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.4.0
-	mosn.io/api v1.1.1-0.20221020052648-537dd3d52055
+	mosn.io/api v1.2.3
 )
 
 require (
