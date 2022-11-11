@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	NotFoundError = errors.New("value not found")
+	ErrValueNotFound = errors.New("value not found")
 )
 
 // StringGetterFunc used to get the value of string-typed variable, the implementation should handle the field
