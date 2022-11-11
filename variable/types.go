@@ -21,6 +21,7 @@ import "context"
 
 const (
 	ValueNotFound = "-"
+	NotFoundError = "value not found"
 )
 
 // StringGetterFunc used to get the value of string-typed variable, the implementation should handle the field
