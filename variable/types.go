@@ -17,10 +17,17 @@
 
 package variable
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 const (
 	ValueNotFound = "-"
+)
+
+var (
+	ErrValueNotFound = errors.New("value not found")
 )
 
 // StringGetterFunc used to get the value of string-typed variable, the implementation should handle the field
