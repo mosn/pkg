@@ -75,9 +75,18 @@ type BasicVariable struct {
 	getter *getterImpl
 	setter *setterImpl
 
-	name  string
-	data  interface{}
-	flags uint32
+	name   string
+	data   interface{}
+	flags  uint32
+	caller string
+}
+
+func (bv *BasicVariable) SetCaller(caller string) {
+	bv.caller = caller
+}
+
+func (bv *BasicVariable) GetCaller() string {
+	return bv.caller
 }
 
 // Name returns variable's name

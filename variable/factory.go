@@ -21,6 +21,7 @@ package variable
 import (
 	"context"
 	"errors"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -99,9 +100,20 @@ func Register(variable Variable) error {
 	name := variable.Name()
 
 	// check conflict
-	if _, ok := variables[name]; ok {
-		log.DefaultLogger.Errorf("[variable] duplicate register variable: %s", name)
-		return errors.New(errVariableDuplicated + name)
+	if old, ok := variables[name]; ok {
+		oldCaller := ""
+		if recorder, ok := old.(CallerRecorder); ok {
+			oldCaller = recorder.GetCaller()
+		}
+
+		log.DefaultLogger.Warnf("[variable] duplicate register variable: %s, the last one is registered by: %v",
+			name, oldCaller)
+	}
+
+	if recoder, ok := variable.(CallerRecorder); ok {
+		if _, file, _, ok := runtime.Caller(1); ok {
+			recoder.SetCaller(file)
+		}
 	}
 
 	// register
@@ -123,8 +135,20 @@ func RegisterPrefix(prefix string, variable Variable) error {
 	defer mux.Unlock()
 
 	// check conflict
-	if _, ok := prefixVariables[prefix]; ok {
-		return errors.New(errPrefixDuplicated + prefix)
+	if old, ok := prefixVariables[prefix]; ok {
+		oldCaller := ""
+		if recorder, ok := old.(CallerRecorder); ok {
+			oldCaller = recorder.GetCaller()
+		}
+
+		log.DefaultLogger.Warnf("[variable] duplicate register prefix variable: %s, the last one is registered by: %v",
+			prefix, oldCaller)
+	}
+
+	if recoder, ok := variable.(CallerRecorder); ok {
+		if _, file, _, ok := runtime.Caller(1); ok {
+			recoder.SetCaller(file)
+		}
 	}
 
 	// register

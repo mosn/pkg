@@ -19,8 +19,10 @@ package variable
 
 import (
 	"context"
+	"runtime"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -121,4 +123,33 @@ func TestGetterVariable(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "value", vi.(string))
 
+}
+
+func TestDupRegister(t *testing.T) {
+	// normal variable
+	{
+		var1 := NewVariable("var1", nil, nil, DefaultSetter, 0)
+		assert.Nil(t, Register(var1))
+		assert.Equal(t, variables["var1"], var1)
+
+		_, file, _, _ := runtime.Caller(0)
+		assert.Equal(t, var1.(CallerRecorder).GetCaller(), file)
+
+		var2 := NewVariable("var1", nil, nil, DefaultSetter, 0)
+		assert.Nil(t, Register(var2))
+		assert.Equal(t, variables["var1"], var2)
+	}
+	// prefix variable
+	{
+		var1 := NewVariable("var1", nil, nil, DefaultSetter, 0)
+		assert.Nil(t, RegisterPrefix("pre-", var1))
+		assert.Equal(t, prefixVariables["pre-"], var1)
+
+		_, file, _, _ := runtime.Caller(0)
+		assert.Equal(t, var1.(CallerRecorder).GetCaller(), file)
+
+		var2 := NewVariable("var1", nil, nil, DefaultSetter, 0)
+		assert.Nil(t, RegisterPrefix("pre-", var2))
+		assert.Equal(t, prefixVariables["pre-"], var2)
+	}
 }
