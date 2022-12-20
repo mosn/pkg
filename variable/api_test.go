@@ -78,6 +78,35 @@ func TestGetVariableValue_normal(t *testing.T) {
 
 }
 
+func TestSetShouldInvalidateCachedValue(t *testing.T) {
+	name := "SetShouldInvalidateCachedValue"
+	value := "1"
+
+	getter := func(ctx context.Context, v *IndexedValue, data interface{}) (string, error) {
+		return value, nil
+	}
+
+	setter := func(ctx context.Context, variableValue *IndexedValue, v string) error {
+		value = v
+		return nil
+	}
+
+	// register test variable
+	Register(NewStringVariable(name, nil, getter, setter, 0))
+
+	ctx := context.Background()
+	ctx = NewVariableContext(ctx)
+
+	s, _ := GetString(ctx, name) // make sure the value is cached
+	assert.Equal(t, s, "1")
+
+	_ = SetString(ctx, name, "2") // set to a new value, the cached value should be invalidated
+	assert.Equal(t, value, "2")
+
+	s, _ = GetString(ctx, name)
+	assert.Equal(t, s, "2")
+}
+
 func TestSetVariableValue_normal(t *testing.T) {
 	name := "ApiSet"
 	value := "Setter Value"

@@ -182,6 +182,9 @@ func setFlushedValue(ctx context.Context, index uint32, value interface{}) error
 			if setter == nil {
 				return errors.New(errSetterNotFound + variable.Name())
 			}
+
+			// should invalidate the cached value before setting it to a new one
+			variableValue.Valid = false
 			return setter.Set(ctx, variableValue, value)
 		}
 	}
