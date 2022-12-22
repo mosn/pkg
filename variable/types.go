@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	MOSN_VAR_FLAG_NOCACHEABLE = 1
+
 	ValueNotFound = "-"
 )
 
@@ -62,6 +64,8 @@ type Variable interface {
 	Name() string
 	// variable data, which is useful for getter/setter
 	Data() interface{}
+	// variable flags
+	Flags() uint32
 	// value getter
 	Getter() Getter
 	// value setter
@@ -70,9 +74,9 @@ type Variable interface {
 
 // IndexedValue used to store result value
 type IndexedValue struct {
-	Valid bool
-
-	data interface{}
+	Valid       bool
+	noCacheable bool
+	data        interface{}
 }
 
 // Indexer indicates that variable needs to be cached by using pre-allocated IndexedValue

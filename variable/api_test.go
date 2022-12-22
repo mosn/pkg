@@ -171,6 +171,28 @@ func TestVarNotGetterHint(t *testing.T) {
 	assert.Equal(t, err2.Error(), errValueNotFound+name)
 }
 
+func TestVariableNoCache(t *testing.T) {
+	vname := "nocache"
+	value := "init"
+	getter := func(_ context.Context, _ *IndexedValue, _ interface{}) (s string, err error) {
+		return value, nil
+	}
+	setter := func(_ context.Context, _ *IndexedValue, v string) error {
+		value = v
+		return nil
+	}
+	Register(NewStringVariable(vname, nil, getter, setter, MOSN_VAR_FLAG_NOCACHEABLE))
+
+	ctx := NewVariableContext(context.Background())
+	s, _ := GetString(ctx, vname) // try to cache the variable value
+	assert.Equal(t, s, "init")
+	_ = SetString(ctx, vname, "new value") // set to a new value, the cached value should be invalidated
+	assert.Equal(t, value, "new value")    // make sure set is called
+
+	s2, _ := GetString(ctx, vname) // get a new variable
+	assert.Equal(t, s2, "new value")
+}
+
 func TestVariableGetSetCached(t *testing.T) {
 	name := "cache getter"
 	cacheValue := "cached"

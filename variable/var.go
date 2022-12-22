@@ -90,6 +90,11 @@ func (bv *BasicVariable) Data() interface{} {
 	return bv.data
 }
 
+// Flags returns variable's cache flag
+func (bv *BasicVariable) Flags() uint32 {
+	return bv.flags
+}
+
 // Getter is the variable's value get function if the variable contains it
 func (bv *BasicVariable) Getter() Getter {
 	return bv.getter
