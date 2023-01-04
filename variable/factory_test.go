@@ -137,6 +137,7 @@ func TestOverride(t *testing.T) {
 		assert.True(t, strings.Contains(Register(var2).Error(), errVariableDuplicated))
 		assert.Nil(t, Override(var2))
 		assert.Equal(t, variables["var1"], var2)
+		assert.Equal(t, var1.(Indexer).GetIndex(), var2.(Indexer).GetIndex())
 	}
 	// prefix variable
 	{

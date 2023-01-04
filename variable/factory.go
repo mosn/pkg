@@ -127,7 +127,8 @@ func Override(variable Variable) error {
 	name := variable.Name()
 
 	// check override
-	if _, ok := variables[name]; !ok {
+	oldVar, ok := variables[name]
+	if !ok {
 		log.DefaultLogger.Errorf("[variable] override unregistered variable: %s", name)
 		return errors.New(errVariableNotRegister + name)
 	}
@@ -136,11 +137,18 @@ func Override(variable Variable) error {
 	variables[name] = variable
 
 	// check index
-	if indexer, ok := variable.(Indexer); ok {
-		index := len(indexedVariables)
-		indexer.SetIndex(uint32(index))
+	if newIndexer, ok := variable.(Indexer); ok {
+		if oldIndexer, ok := oldVar.(Indexer); ok {  // reuse old index
+			index := oldIndexer.GetIndex()
+			newIndexer.SetIndex(index)
 
-		indexedVariables = append(indexedVariables, variable)
+			indexedVariables[index] = variable
+		} else {
+			index := len(indexedVariables) // assign a new index
+			newIndexer.SetIndex(uint32(index))
+
+			indexedVariables = append(indexedVariables, variable)
+		}
 	}
 	return nil
 }
