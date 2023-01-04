@@ -126,14 +126,14 @@ func Override(variable Variable) error {
 
 	name := variable.Name()
 
-	// check override
+	// ensure already registered
 	oldVar, ok := variables[name]
 	if !ok {
 		log.DefaultLogger.Errorf("[variable] override unregistered variable: %s", name)
 		return errors.New(errVariableNotRegister + name)
 	}
 
-	// register
+	// override
 	variables[name] = variable
 
 	// check index
@@ -174,12 +174,12 @@ func OverridePrefix(prefix string, variable Variable) error {
 	mux.Lock()
 	defer mux.Unlock()
 
-	// check conflict
+	// ensure already registered
 	if _, ok := prefixVariables[prefix]; !ok {
 		return errors.New(errPrefixNotRegister + prefix)
 	}
 
-	// register
+	// override
 	prefixVariables[prefix] = variable
 	return nil
 }
