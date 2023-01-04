@@ -129,26 +129,32 @@ func TestOverride(t *testing.T) {
 	// normal variable
 	{
 		var1 := NewVariable("var1", nil, nil, DefaultSetter, 0)
-		assert.True(t, strings.Contains(Override(var1).Error(), errVariableNotRegister))
-		assert.Nil(t, Register(var1))
+		assert.True(t, strings.Contains(Override(var1).Error(), errVariableNotRegister)) // override should fail
+		assert.Nil(t, Register(var1))                                                    // register should success
 		assert.Equal(t, variables["var1"], var1)
 
 		var2 := NewVariable("var1", nil, nil, DefaultSetter, 0)
-		assert.True(t, strings.Contains(Register(var2).Error(), errVariableDuplicated))
-		assert.Nil(t, Override(var2))
+		assert.True(t, strings.Contains(Register(var2).Error(), errVariableDuplicated)) // dup register should fail
+		assert.Nil(t, Override(var2))                                                   // override should success
 		assert.Equal(t, variables["var1"], var2)
-		assert.Equal(t, var1.(Indexer).GetIndex(), var2.(Indexer).GetIndex())
+		assert.Equal(t, var1.(Indexer).GetIndex(), var2.(Indexer).GetIndex()) // inherit index
+
+		ctx := NewVariableContext(context.Background())
+		newValue := "new value"
+		assert.Nil(t, Set(ctx, var2, newValue)) // set by the new var
+		v, _ := Get(ctx, var1)                  // get by the old var, should return the value of the new var
+		assert.Equal(t, v.(string), newValue)
 	}
 	// prefix variable
 	{
 		var1 := NewVariable("var1", nil, nil, DefaultSetter, 0)
-		assert.True(t, strings.Contains(OverridePrefix("pre-", var1).Error(), errPrefixNotRegister))
-		assert.Nil(t, RegisterPrefix("pre-", var1))
+		assert.True(t, strings.Contains(OverridePrefix("pre-", var1).Error(), errPrefixNotRegister)) // override should fail
+		assert.Nil(t, RegisterPrefix("pre-", var1))                                                  // register should success
 		assert.Equal(t, prefixVariables["pre-"], var1)
 
 		var2 := NewVariable("var1", nil, nil, DefaultSetter, 0)
-		assert.True(t, strings.Contains(RegisterPrefix("pre-", var2).Error(), errPrefixDuplicated))
-		assert.Nil(t, OverridePrefix("pre-", var2))
+		assert.True(t, strings.Contains(RegisterPrefix("pre-", var2).Error(), errPrefixDuplicated)) // dup register should fail
+		assert.Nil(t, OverridePrefix("pre-", var2))                                                 // override should success
 		assert.Equal(t, prefixVariables["pre-"], var2)
 	}
 }
