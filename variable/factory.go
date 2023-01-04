@@ -21,7 +21,6 @@ package variable
 import (
 	"context"
 	"errors"
-	"runtime"
 	"strings"
 	"sync"
 
@@ -38,7 +37,9 @@ var (
 
 	// error message
 	errVariableDuplicated   = "duplicate variable register, name: "
+	errVariableNotRegister  = "override unregistered variable, name: "
 	errPrefixDuplicated     = "duplicate prefix variable register, prefix: "
+	errPrefixNotRegister    = "override unregistered prefix variable, prefix: "
 	errUndefinedVariable    = "undefined variable, name: "
 	errInvalidContext       = "invalid context"
 	errNoVariablesInContext = "no variables found in context"
@@ -100,20 +101,9 @@ func Register(variable Variable) error {
 	name := variable.Name()
 
 	// check conflict
-	if old, ok := variables[name]; ok {
-		oldCaller := ""
-		if recorder, ok := old.(CallerRecorder); ok {
-			oldCaller = recorder.GetCaller()
-		}
-
-		log.DefaultLogger.Warnf("[variable] duplicate register variable: %s, the last one is registered by: %v",
-			name, oldCaller)
-	}
-
-	if recoder, ok := variable.(CallerRecorder); ok {
-		if _, file, _, ok := runtime.Caller(1); ok {
-			recoder.SetCaller(file)
-		}
+	if _, ok := variables[name]; ok {
+		log.DefaultLogger.Errorf("[variable] duplicate register variable: %s", name)
+		return errors.New(errVariableDuplicated + name)
 	}
 
 	// register
@@ -129,26 +119,56 @@ func Register(variable Variable) error {
 	return nil
 }
 
+// Override a variable, return error if the variable haven't been registered
+func Override(variable Variable) error {
+	mux.Lock()
+	defer mux.Unlock()
+
+	name := variable.Name()
+
+	// check override
+	if _, ok := variables[name]; !ok {
+		log.DefaultLogger.Errorf("[variable] override unregistered variable: %s", name)
+		return errors.New(errVariableNotRegister + name)
+	}
+
+	// register
+	variables[name] = variable
+
+	// check index
+	if indexer, ok := variable.(Indexer); ok {
+		index := len(indexedVariables)
+		indexer.SetIndex(uint32(index))
+
+		indexedVariables = append(indexedVariables, variable)
+	}
+	return nil
+}
+
+
 // Register a new variable with prefix
 func RegisterPrefix(prefix string, variable Variable) error {
 	mux.Lock()
 	defer mux.Unlock()
 
 	// check conflict
-	if old, ok := prefixVariables[prefix]; ok {
-		oldCaller := ""
-		if recorder, ok := old.(CallerRecorder); ok {
-			oldCaller = recorder.GetCaller()
-		}
-
-		log.DefaultLogger.Warnf("[variable] duplicate register prefix variable: %s, the last one is registered by: %v",
-			prefix, oldCaller)
+	if _, ok := prefixVariables[prefix]; ok {
+		return errors.New(errPrefixDuplicated + prefix)
 	}
 
-	if recoder, ok := variable.(CallerRecorder); ok {
-		if _, file, _, ok := runtime.Caller(1); ok {
-			recoder.SetCaller(file)
-		}
+	// register
+	prefixVariables[prefix] = variable
+	return nil
+}
+
+// Override a variable with prefix, return error if the variable haven't been registered
+func OverridePrefix(prefix string, variable Variable) error {
+	mux.Lock()
+	defer mux.Unlock()
+
+	// check conflict
+	if _, ok := prefixVariables[prefix]; !ok {
+		return errors.New(errPrefixNotRegister + prefix)
 	}
 
 	// register

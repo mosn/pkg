@@ -83,11 +83,3 @@ type Indexer interface {
 	// set index to variable
 	SetIndex(index uint32)
 }
-
-// CallerRecorder indicates that the variable is able to record which file it's registered by
-type CallerRecorder interface {
-	// record the file that the variable is registered by
-	SetCaller(caller string)
-	// return the file that the variable is registered by
-	GetCaller() string
-}

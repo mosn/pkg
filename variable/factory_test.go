@@ -19,7 +19,7 @@ package variable
 
 import (
 	"context"
-	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -125,31 +125,29 @@ func TestGetterVariable(t *testing.T) {
 
 }
 
-func TestDupRegister(t *testing.T) {
+func TestOverride(t *testing.T) {
 	// normal variable
 	{
 		var1 := NewVariable("var1", nil, nil, DefaultSetter, 0)
+		assert.True(t, strings.Contains(Override(var1).Error(), errVariableNotRegister))
 		assert.Nil(t, Register(var1))
 		assert.Equal(t, variables["var1"], var1)
 
-		_, file, _, _ := runtime.Caller(0)
-		assert.Equal(t, var1.(CallerRecorder).GetCaller(), file)
-
 		var2 := NewVariable("var1", nil, nil, DefaultSetter, 0)
-		assert.Nil(t, Register(var2))
+		assert.True(t, strings.Contains(Register(var2).Error(), errVariableDuplicated))
+		assert.Nil(t, Override(var2))
 		assert.Equal(t, variables["var1"], var2)
 	}
 	// prefix variable
 	{
 		var1 := NewVariable("var1", nil, nil, DefaultSetter, 0)
+		assert.True(t, strings.Contains(OverridePrefix("pre-", var1).Error(), errPrefixNotRegister))
 		assert.Nil(t, RegisterPrefix("pre-", var1))
 		assert.Equal(t, prefixVariables["pre-"], var1)
 
-		_, file, _, _ := runtime.Caller(0)
-		assert.Equal(t, var1.(CallerRecorder).GetCaller(), file)
-
 		var2 := NewVariable("var1", nil, nil, DefaultSetter, 0)
-		assert.Nil(t, RegisterPrefix("pre-", var2))
+		assert.True(t, strings.Contains(RegisterPrefix("pre-", var2).Error(), errPrefixDuplicated))
+		assert.Nil(t, OverridePrefix("pre-", var2))
 		assert.Equal(t, prefixVariables["pre-"], var2)
 	}
 }
