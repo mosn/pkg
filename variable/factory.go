@@ -37,7 +37,9 @@ var (
 
 	// error message
 	errVariableDuplicated   = "duplicate variable register, name: "
+	errVariableNotRegister  = "override unregistered variable, name: "
 	errPrefixDuplicated     = "duplicate prefix variable register, prefix: "
+	errPrefixNotRegister    = "override unregistered prefix variable, prefix: "
 	errUndefinedVariable    = "undefined variable, name: "
 	errInvalidContext       = "invalid context"
 	errNoVariablesInContext = "no variables found in context"
@@ -117,6 +119,41 @@ func Register(variable Variable) error {
 	return nil
 }
 
+// Override a variable, return error if the variable haven't been registered
+func Override(variable Variable) error {
+	mux.Lock()
+	defer mux.Unlock()
+
+	name := variable.Name()
+
+	// ensure already registered
+	oldVar, ok := variables[name]
+	if !ok {
+		log.DefaultLogger.Errorf("[variable] override unregistered variable: %s", name)
+		return errors.New(errVariableNotRegister + name)
+	}
+
+	// override
+	variables[name] = variable
+
+	// check index
+	if newIndexer, ok := variable.(Indexer); ok {
+		if oldIndexer, ok := oldVar.(Indexer); ok {  // reuse old index
+			index := oldIndexer.GetIndex()
+			newIndexer.SetIndex(index)
+
+			indexedVariables[index] = variable
+		} else {
+			index := len(indexedVariables) // assign a new index
+			newIndexer.SetIndex(uint32(index))
+
+			indexedVariables = append(indexedVariables, variable)
+		}
+	}
+	return nil
+}
+
+
 // Register a new variable with prefix
 func RegisterPrefix(prefix string, variable Variable) error {
 	mux.Lock()
@@ -128,6 +165,21 @@ func RegisterPrefix(prefix string, variable Variable) error {
 	}
 
 	// register
+	prefixVariables[prefix] = variable
+	return nil
+}
+
+// Override a variable with prefix, return error if the variable haven't been registered
+func OverridePrefix(prefix string, variable Variable) error {
+	mux.Lock()
+	defer mux.Unlock()
+
+	// ensure already registered
+	if _, ok := prefixVariables[prefix]; !ok {
+		return errors.New(errPrefixNotRegister + prefix)
+	}
+
+	// override
 	prefixVariables[prefix] = variable
 	return nil
 }
