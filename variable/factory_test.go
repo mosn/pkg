@@ -142,8 +142,13 @@ func TestOverride(t *testing.T) {
 		ctx := NewVariableContext(context.Background())
 		newValue := "new value"
 		assert.Nil(t, Set(ctx, var2, newValue)) // set by the new var
-		v, _ := Get(ctx, var1)                  // get by the old var, should return the value of the new var
+		v, _ := Get(ctx, var1)                  // get by the old var, should return the new value
 		assert.Equal(t, v.(string), newValue)
+
+		newValue2 := "new value2"
+		assert.Nil(t, Set(ctx, var1, newValue2)) // set by the old var
+		v, _ = Get(ctx, var2)                    // get by the new var, should return the new value
+		assert.Equal(t, v.(string), newValue2)
 	}
 	// prefix variable
 	{
