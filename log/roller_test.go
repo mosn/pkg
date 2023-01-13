@@ -176,3 +176,12 @@ func TestRollerGetLogWriter(t *testing.T) {
 	io2 := roller.GetLogWriter()
 	assert.Equal(t, io1, io2)
 }
+
+func TestGlobalRollerUpdate(t *testing.T) {
+	logger, _ := GetOrCreateLogger("/tmp/testlog.txt", nil)
+	time.Sleep(time.Second)
+	InitGlobalRoller("age=7 size=500 compress=on")
+	assert.Equal(t, true, logger.roller.Compress)
+	assert.Equal(t, 500, logger.roller.MaxSize)
+	assert.Equal(t, 7, logger.roller.MaxAge)
+}

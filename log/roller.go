@@ -139,7 +139,6 @@ func DefaultRoller() *Roller {
 		MaxSize:    defaultRotateSize,
 		MaxAge:     defaultRotateAge,
 		MaxBackups: defaultRotateKeep,
-		MaxTime:    defaultRotateTime,
 		Compress:   false,
 		LocalTime:  true,
 		Handler:    rollerHandler,
