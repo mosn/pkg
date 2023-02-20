@@ -25,9 +25,9 @@ import (
 
 	"github.com/dubbogo/go-zookeeper/zk"
 
+	perrors "github.com/pkg/errors"
 	"mosn.io/pkg/registry/dubbo/common/constant"
 	"mosn.io/pkg/registry/dubbo/common/logger"
-	perrors "github.com/pkg/errors"
 )
 
 const (
@@ -78,10 +78,6 @@ func StateToString(state zk.State) string {
 		return "zookeeper has session"
 	case zk.StateUnknown:
 		return "zookeeper unknown state"
-	case zk.State(zk.EventNodeDeleted):
-		return "zookeeper node deleted"
-	case zk.State(zk.EventNodeDataChanged):
-		return "zookeeper node data changed"
 	default:
 		return state.String()
 	}
@@ -264,6 +260,20 @@ func (z *ZookeeperClient) HandleZkEvent(session <-chan zk.Event) {
 					conn.Close()
 				}
 				return
+			case (int)(zk.StateConnecting), (int)(zk.StateConnected), (int)(zk.StateHasSession):
+				if state == (int)(zk.StateHasSession) {
+					continue
+				}
+				z.eventRegistryLock.RLock()
+				if a, ok := z.eventRegistry[event.Path]; ok && 0 < len(a) {
+					for _, e := range a {
+						*e <- struct{}{}
+					}
+				}
+				z.eventRegistryLock.RUnlock()
+			}
+
+			switch (int)(event.Type) {
 			case (int)(zk.EventNodeDataChanged), (int)(zk.EventNodeChildrenChanged):
 				logger.Infof("zkClient{%s} get zk node changed event{path:%s}", z.name, event.Path)
 				z.eventRegistryLock.RLock()
@@ -274,17 +284,6 @@ func (z *ZookeeperClient) HandleZkEvent(session <-chan zk.Event) {
 						for _, e := range a {
 							*e <- struct{}{}
 						}
-					}
-				}
-				z.eventRegistryLock.RUnlock()
-			case (int)(zk.StateConnecting), (int)(zk.StateConnected), (int)(zk.StateHasSession):
-				if state == (int)(zk.StateHasSession) {
-					continue
-				}
-				z.eventRegistryLock.RLock()
-				if a, ok := z.eventRegistry[event.Path]; ok && 0 < len(a) {
-					for _, e := range a {
-						*e <- struct{}{}
 					}
 				}
 				z.eventRegistryLock.RUnlock()

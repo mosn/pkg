@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/dubbogo/getty v1.3.4
-	github.com/dubbogo/go-zookeeper v1.0.3
+	github.com/dubbogo/go-zookeeper v1.0.4-0.20211212162352-f9d2183d89d5
 	github.com/dubbogo/gost v1.11.16
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/golang/protobuf v1.5.0
@@ -12,7 +12,7 @@ require (
 	github.com/jinzhu/copier v0.3.2
 	github.com/magiconair/properties v1.8.1
 	github.com/pkg/errors v0.9.1
-	github.com/satori/go.uuid v1.2.0
+	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b
 	github.com/stretchr/testify v1.7.0
 	github.com/ugorji/go/codec v1.1.7
 	github.com/valyala/fasthttp v1.40.0
@@ -48,5 +48,5 @@ require (
 	go.uber.org/multierr v1.5.0 // indirect
 	google.golang.org/protobuf v1.26.0-rc.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
