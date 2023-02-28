@@ -406,8 +406,15 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 				default:
 				}
 			}
-			now := time.Now()
-			interval = l.calculateInterval(now)
+
+			if defaultRoller.MaxTime > 0 {
+				now := time.Now()
+				interval = l.calculateInterval(now)
+			} else {
+				l.roller.Filename = l.output
+				l.writer = l.roller.GetLogWriter()
+				return
+			}
 		case <-timer.C:
 			now := time.Now()
 			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
