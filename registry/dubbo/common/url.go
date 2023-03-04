@@ -30,9 +30,9 @@ import (
 
 	gxset "github.com/dubbogo/gost/container/set"
 	"github.com/jinzhu/copier"
-	"mosn.io/pkg/registry/dubbo/common/constant"
 	perrors "github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+	"mosn.io/pkg/registry/dubbo/common/constant"
 )
 
 /////////////////////////////////
@@ -170,7 +170,9 @@ func WithToken(token string) option {
 		if len(token) > 0 {
 			value := token
 			if strings.ToLower(token) == "true" || strings.ToLower(token) == "default" {
-				value = uuid.NewV4().String()
+				if v, err := uuid.NewV4(); err == nil {
+					value = v.String()
+				}
 			}
 			url.SetParam(constant.TOKEN_KEY, value)
 		}
