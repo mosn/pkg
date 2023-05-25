@@ -47,6 +47,10 @@ func (l *SimpleContextLog) Debugf(ctx context.Context, format string, args ...in
 	l.SimpleErrorLog.Debugf(format, args...)
 }
 
+func (l *SimpleContextLog) Tracef(ctx context.Context, format string, args ...interface{}) {
+	l.SimpleErrorLog.Tracef(format, args...)
+}
+
 func (l *SimpleContextLog) Warnf(ctx context.Context, format string, args ...interface{}) {
 	l.SimpleErrorLog.Infof(format, args...)
 }

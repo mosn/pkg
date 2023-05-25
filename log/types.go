@@ -81,6 +81,8 @@ type ContextLogger interface {
 
 	Errorf(ctx context.Context, format string, args ...interface{})
 
+	Tracef(ctx context.Context, format string, args ...interface{})
+
 	Fatalf(ctx context.Context, format string, args ...interface{})
 
 	// SetLogLevel updates the log level
