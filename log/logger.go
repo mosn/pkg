@@ -18,12 +18,16 @@
 package log
 
 import (
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime/debug"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -76,7 +80,7 @@ type Logger struct {
 }
 
 type LoggerInfo struct {
-	LogRoller  Roller
+	LogRoller  *Roller
 	FileName   string
 	CreateTime time.Time
 }
@@ -205,6 +209,7 @@ func (l *Logger) start() error {
 					l.create = time.Now()
 				}
 				l.writer = file
+				l.mill()
 				l.once.Do(l.startRotate) // start rotate, only once
 			}
 		}
@@ -418,7 +423,7 @@ func doRotateFunc(l *Logger, interval time.Duration) {
 		case <-timer.C:
 			now := time.Now()
 			info := LoggerInfo{FileName: l.output, CreateTime: l.create}
-			info.LogRoller = *l.roller
+			info.LogRoller = l.roller
 			l.roller.Handler(&info)
 			l.create = now
 			go l.Reopen()
@@ -477,4 +482,205 @@ func parseSyslogAddress(location string) *syslogAddress {
 	}
 
 	return nil
+}
+
+const (
+	compressSuffix = ".gz"
+)
+
+// millRunOnce performs compression and removal of stale log files.
+// Log files are compressed if enabled via configuration and old log
+// files are removed, keeping at most l.MaxBackups files, as long as
+// none of them are older than MaxAge.
+func (l *Logger) millRunOnce() error {
+	files, err := l.oldLogFiles()
+	if err != nil {
+		return err
+	}
+
+	compress, remove := l.screeningCompressFile(files)
+
+	for _, f := range remove {
+		_ = os.Remove(filepath.Join(l.dir(), f.FileName))
+	}
+	var wg sync.WaitGroup
+	for _, f := range compress {
+		var fnCompress, fileName string
+		fileName = f.FileName
+		wg.Add(1)
+		fnCompress, err = l.findCompressFile(fileName)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "logger %s findCompressFile , error: %v", l.output, err)
+			return err
+		}
+		go func(fnCompress, fileName string, wg *sync.WaitGroup) {
+			defer wg.Done()
+			err = l.compressLogFile(fileName, fnCompress)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "logger %s compressLogFile , error: %v", l.output, err)
+			}
+		}(fnCompress, fileName, &wg)
+	}
+	wg.Wait()
+	return err
+}
+
+func (l *Logger) screeningCompressFile(files []LoggerInfo) (compress, remove []LoggerInfo) {
+	resFiles, removeByMaxAge := l.screeningCompressFileByMaxAge(files)
+	resFiles, remove = l.screeningCompressFileByMaxBackups(resFiles, removeByMaxAge)
+
+	if l.roller.Compress {
+		for i := range resFiles {
+			if !strings.HasSuffix(resFiles[i].FileName, compressSuffix) {
+				compress = append(compress, resFiles[i])
+			}
+		}
+	}
+	return
+}
+
+func (l *Logger) screeningCompressFileByMaxAge(files []LoggerInfo) (resFiles, remove []LoggerInfo) {
+	if l.roller.MaxAge > 0 {
+		diff := time.Duration(int64(maxRotateHour*time.Hour) * int64(l.roller.MaxAge))
+		cutoff := time.Now().Add(-1 * diff)
+
+		for i := range files {
+			if files[i].CreateTime.Before(cutoff) {
+				remove = append(remove, files[i])
+			} else {
+				resFiles = append(resFiles, files[i])
+			}
+		}
+	} else {
+		resFiles = files
+	}
+	return
+}
+
+func (l *Logger) screeningCompressFileByMaxBackups(files, remove []LoggerInfo) (resFiles, resRemove []LoggerInfo) {
+	if l.roller.MaxBackups > 0 && l.roller.MaxBackups < len(files) {
+		preserved := make(map[string]bool)
+
+		for i := range files {
+			// Only count the uncompressed log file or the
+			// compressed log file, not both.
+			fn := files[i].FileName
+
+			preserved[strings.TrimSuffix(fn, compressSuffix)] = true
+
+			if len(preserved) > l.roller.MaxBackups {
+				remove = append(remove, files[i])
+			} else {
+				resFiles = append(resFiles, files[i])
+			}
+		}
+	} else {
+		resFiles = files
+	}
+	resRemove = remove
+	return
+}
+
+//findCompressFile Find the compressed file name based on the file name ，compressed file is not exist。
+func (l *Logger) findCompressFile(fileName string) (string, error) {
+	var (
+		num      = 1
+		statName = fileName
+		err      error
+	)
+
+	for i := 0; i <= l.roller.MaxBackups; i++ {
+		if _, err = os.Stat(l.dir() + statName + compressSuffix); os.IsNotExist(err) {
+			return statName + compressSuffix, nil
+		}
+		statName = fileName + "." + strconv.Itoa(num)
+		num++
+	}
+	return fileName, err
+}
+
+func (l *Logger) mill() {
+	if l.roller.MaxBackups != defaultRotateKeep || l.roller.MaxAge != defaultRotateAge || l.roller.Compress {
+		_ = l.millRunOnce()
+	}
+}
+
+// oldLogFiles returns the list of backup log files stored in the same
+// directory as the current log file, sorted by ModTime
+func (l *Logger) oldLogFiles() ([]LoggerInfo, error) {
+	files, err := ioutil.ReadDir(l.dir())
+	if err != nil {
+		return nil, err
+	}
+	logFiles := []LoggerInfo{}
+
+	for _, f := range files {
+		if f.IsDir() {
+			continue
+		}
+		if !strings.HasPrefix(f.Name(), filepath.Base(l.output)+".") {
+			continue
+		}
+		logFiles = append(logFiles, LoggerInfo{l.roller, f.Name(), f.ModTime()})
+	}
+	sort.Sort(byFormatTime(logFiles))
+
+	return logFiles, nil
+}
+
+// dir returns the directory for the current filename.
+func (l *Logger) dir() string {
+	return filepath.Dir(l.output)
+}
+
+// compressLogFile compresses the given log file, removing the
+// uncompressed log file if successful.
+func (l *Logger) compressLogFile(srcFile, dstFile string) error {
+	f, err := os.Open(filepath.Join(l.dir(), filepath.Clean(srcFile)))
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = f.Close()
+	}()
+
+	gzf, err := os.OpenFile(filepath.Join(l.dir(), filepath.Clean(dstFile)), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = gzf.Close()
+		if err != nil {
+			_ = os.Remove(filepath.Join(l.dir(), filepath.Clean(dstFile)))
+		}
+	}()
+
+	gz := gzip.NewWriter(gzf)
+
+	if _, err = io.Copy(gz, f); err != nil {
+		return err
+	}
+
+	if err = gz.Close(); err != nil {
+		return err
+	}
+
+	return os.Remove(filepath.Join(l.dir(), filepath.Clean(srcFile)))
+}
+
+// byFormatTime sorts by newest time formatted in the name.
+type byFormatTime []LoggerInfo
+
+func (b byFormatTime) Less(i, j int) bool {
+	return b[i].CreateTime.After(b[j].CreateTime)
+}
+
+func (b byFormatTime) Swap(i, j int) {
+	b[i], b[j] = b[j], b[i]
+}
+
+func (b byFormatTime) Len() int {
+	return len(b)
 }
